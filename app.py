@@ -1,6 +1,7 @@
 from typing import Dict, Tuple
 import uuid
 from os.path import join as join_path
+import requests
 
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
@@ -24,7 +25,7 @@ STORAGE_FOLDER = 'files'
 
 def plot_wave(y, sr):
     fig, ax = plt.subplots()
-    img = librosa.display.waveshow(y, sr=sr, x_axis="time", ax=ax)
+    img = librosa.display.waveshow(y, sr=sr, axis="time", ax=ax)
     return plt.gcf()
 
 def load_denoiser():
@@ -55,46 +56,64 @@ def transcribe(model, file_path: str) -> Tuple:
     
     return result["language"], result["text"]
 
+def cold_run(models, funcs, file_path='cold_run.wav'):
+    print("Start cold run")
+    for model, func in zip(models, funcs):
+        func(model, file_path=file_path)
+    print("Cold run ended")
+    
+
+def process_audio(audio_bytes, denoiser, transcriber):
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        st.header("Исходная аудиозапись")
+        st.audio(audio_bytes, format="audio/wav")
+    
+    uid = str(uuid.uuid4())
+    file_name = uid + '.wav'
+    
+    file_path = join_path(STORAGE_FOLDER, file_name)
+    with open(file_path, 'wb') as f:
+        f.write(audio_bytes)
+    
+    wav, sr = librosa.load(file_path)
+    
+    with col1:
+        st.pyplot(plot_wave(wav, sr))
+    
+    denoised_file_path = join_path(STORAGE_FOLDER, file_name.replace(uid, f"denoised_{uid}"))
+    denoised_audio_tensor = denoise(denoiser, file_path)
+    
+    torchaudio.save(denoised_file_path, denoised_audio_tensor, denoiser.sample_rate)        
+    
+    with col2:
+        st.header("Очищенная аудиозапись")
+        st.audio(open(denoised_file_path, 'rb').read(), format="audio/wav")
+        denoised_wav, sr = librosa.load(denoised_file_path)
+        st.pyplot(plot_wave(denoised_wav, sr))
+
+    _, text = transcribe(transcriber, denoised_file_path)
+    st.header(f"Транскрипт:\n{text}")    
+
 def main():
     st.title("Audio denoiser")
-    audio_bytes = audio_recorder(text="Запишите звук", pause_threshold=5.0)
-    st.file_uploader("или загрузите файл")
-    col1, col2 = st.columns(2, gap="large")
-
     denoiser = load_denoiser()
     transcriber = load_transcriber()
+    cold_run([denoiser, transcriber], [denoise, transcribe], file_path='files/cold_run.wav')
+    audio_recorder_input = audio_recorder(text="Запишите звук", pause_threshold=5.0)
+    if audio_recorder_input:
+        process_audio(audio_recorder_input, denoiser, transcriber)
     
+    url = st.text_input(label="укажите ссылку")
+    if url:
+        
+        audio_data =
+        
+    uploaded_file = st.file_uploader("или загрузите файл",)
+    
+    audio_bytes = audio_recorder_input
     if audio_bytes:
-        with col1:
-            st.header("Исходная аудиозапись")
-            st.audio(audio_bytes, format="audio/wav")
-        
-        uid = str(uuid.uuid4())
-        file_name = uid + '.wav'
-        
-        file_path = join_path(STORAGE_FOLDER, file_name)
-        with open(file_path, 'wb') as f:
-            f.write(audio_bytes)
-        
-        wav, sr = librosa.load(file_path)
-        
-        with col1:
-            st.pyplot(plot_wave(wav, sr))
-        
-        denoised_file_path = join_path(STORAGE_FOLDER, file_name.replace(uid, f"denoised_{uid}"))
-        denoised_audio_tensor = denoise(denoiser, file_path)
-        
-        torchaudio.save(denoised_file_path, denoised_audio_tensor, denoiser.sample_rate)        
-        
-        with col2:
-            st.header("Очищенная аудиозапись")
-            st.audio(open(denoised_file_path, 'rb').read(), format="audio/wav")
-            denoised_wav, sr = librosa.load(denoised_file_path)
-            st.pyplot(plot_wave(denoised_wav, sr))
-    
-        _, text = transcribe(transcriber, denoised_file_path)
-        st.header(f"Транскрипт:\n{text}")        
-        
+        process_audio(audio_bytes, denoiser, transcriber)
         
         
 

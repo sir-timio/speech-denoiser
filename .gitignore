@@ -130,3 +130,6 @@ dmypy.json
 
 files
 .DS_Store
+.vscode
+
+files/*.wav
