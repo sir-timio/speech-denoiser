@@ -6,21 +6,20 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
-    <p>
+    <div style="margin: 20px;">
         <button id="startRecording">Start recording</button>
         <button id="stopRecording" disabled>Stop recording</button>
-    </p>
-    <audio id="audio" controls></audio>
-    <audio id="denoised_audio" controls></audio>
+    </div>
+    <div style="margin: 20px;">
+        <audio id="audio" controls></audio>
+    </div>
 </body>
 <script>
     let audioChunks = [];
     let rec;
     const audio = document.querySelector('#audio');
 
-    navigator
-        .mediaDevices
-        .getUserMedia({audio: true})
+    navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => { handlerFunction(stream) });
 
     function handlerFunction(stream) {
@@ -28,7 +27,7 @@
         rec.ondataavailable = e => {
             audioChunks.push(e.data);
             if (rec.state == "inactive") {
-                let blob = new Blob(audioChunks, {type: "audio/wav"});
+                let blob = new Blob(audioChunks, { type: "audio/wav" });
                 audio.src = URL.createObjectURL(blob);
                 sendData(blob);
             }
@@ -38,7 +37,6 @@
     function sendData(data) {
         var form = new FormData();
         form.append('data', data);
-        //Chrome inspector shows that the post data includes a file and a title.
         $.ajax({
             type: 'POST',
             url: '/save-record',
@@ -51,8 +49,11 @@
         });
     }
 
+    const startRecording = document.querySelector('#startRecording');
+    const stopRecording = document.querySelector('#stopRecording');
+
     startRecording.onclick = e => {
-        console.log('Recording are started..');
+        console.log('Recording has started...');
         startRecording.disabled = true;
         stopRecording.disabled = false;
         audioChunks = [];
@@ -60,7 +61,7 @@
     };
 
     stopRecording.onclick = e => {
-        console.log("Recording are stopped.");
+        console.log("Recording has stopped.");
         startRecording.disabled = false;
         stopRecording.disabled = true;
         rec.stop();
