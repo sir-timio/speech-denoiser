@@ -3,15 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Web Speech Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F7F7F7;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 600px;
+            background-color: #FFFFFF;
+            border: 1px solid #CCCCCC;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background-color: #CCCCCC;
+            cursor: default;
+        }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 </head>
 <body>
-    <div style="margin: 20px;">
-        <button id="startRecording">Start recording</button>
-        <button id="stopRecording" disabled>Stop recording</button>
-    </div>
-    <div style="margin: 20px;">
-        <audio id="audio" controls></audio>
+    <div class="container">
+        <div>
+            <button id="startRecording">Start recording</button>
+            <button disabled id="stopRecording" style="background-color: red;">Stop recording</button>
+        </div>
+        <div>
+            <audio id="audio" controls></audio>
+        </div>
     </div>
 </body>
 <script>

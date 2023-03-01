@@ -1,10 +1,11 @@
-from distutils.log import debug
+import sys
+sys.path.append('..')
+
 import os
 import uuid
 from flask import Flask, flash, request, redirect, send_file, jsonify
 
 # model 
-from IPython import display as disp
 import torch
 import torchaudio
 from denoiser import pretrained
@@ -16,7 +17,7 @@ UPLOAD_FOLDER = 'files'
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = '321'
+app.secret_key = '123456'
 
 @app.route('/')
 def root():
@@ -32,21 +33,22 @@ def save_record():
     
     uid = str(uuid.uuid4())
     fname = os.path.join(app.config['UPLOAD_FOLDER'], uid + ".wav")
+    print(fname)
+    
     audio_data.save(fname)
+        
+    assert MODEL, 'load model first'
     
-    file = fname
-    
-    assert MODEL is None, 'load model first'
-    wav, sr = librosa.load(file)
+    wav, sr = librosa.load(fname)
     wav = convert_audio(torch.tensor(wav[None,:]), sr, MODEL.sample_rate, MODEL.chin)
     with torch.no_grad():
         denoised = MODEL(wav[None])[0]
     
-    # denoised_fname = 
+    denoised_fname = os.path.join(app.config['UPLOAD_FOLDER'], "denoised_" + uid + ".wav")
+    torchaudio.save(denoised_fname, denoised, MODEL.sample_rate)
     
-    return send_file()
-        
-    return jsonify({'success': True, 'message': 'Record saved'}), 200
+    return send_file(denoised_fname, as_attachment=True)
+    # return jsonify({'success': True, 'message': 'Record saved'}), 200
 
 
 @app.route('/denoised_audio/<file>')
