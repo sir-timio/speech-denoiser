@@ -4,36 +4,20 @@
     <meta charset="UTF-8">
     <title>Web Speech Recorder</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <style>
-        button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-        }
-        
-        #startRecording {
-            background-color: #4CAF50;
-        }
-        
-        #stopRecording {
-            background-color: #f44336;
-        }
-    </style>
 </head>
 <body>
     <p>
         <button id="startRecording">Start recording</button>
         <button id="stopRecording" disabled>Stop recording</button>
     </p>
+    <audio id="audio" controls></audio>
+    <audio id="denoised_audio" controls></audio>
 </body>
 <script>
+    let audioChunks = [];
+    let rec;
+    const audio = document.querySelector('#audio');
+
     navigator
         .mediaDevices
         .getUserMedia({audio: true})
@@ -44,7 +28,8 @@
         rec.ondataavailable = e => {
             audioChunks.push(e.data);
             if (rec.state == "inactive") {
-                let blob = new Blob(audioChunks, {type: 'audio/mpeg-3'});
+                let blob = new Blob(audioChunks, {type: "audio/wav"});
+                audio.src = URL.createObjectURL(blob);
                 sendData(blob);
             }
         }
@@ -52,8 +37,7 @@
 
     function sendData(data) {
         var form = new FormData();
-        form.append('file', data, 'data.mp3');
-        form.append('title', 'data.mp3');
+        form.append('data', data);
         //Chrome inspector shows that the post data includes a file and a title.
         $.ajax({
             type: 'POST',
@@ -61,7 +45,7 @@
             data: form,
             cache: false,
             processData: false,
-            contentType: false
+            contentType: false,
         }).done(function(data) {
             console.log(data);
         });
