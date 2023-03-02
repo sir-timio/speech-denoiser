@@ -13,7 +13,9 @@ def load_denoiser():
     Returns:
         model: denoiser
     """
-    return pretrained.dns64().cpu()
+    version = os.getenv("DENOISER_V")
+    assert version in ['dns64', 'dns48']
+    return eval(f"pretrained.{version}().cpu()")
 
 
 def load_transcriber():
@@ -22,4 +24,6 @@ def load_transcriber():
     Returns:
         model: transcriber
     """
-    return whisper.load_model(os.getenv("WHISPER_V"))
+    version = os.getenv("WHISPER_V")
+    assert version in whisper.available_models()
+    return whisper.load_model(version)
