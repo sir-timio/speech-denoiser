@@ -133,3 +133,5 @@ files
 .vscode
 
 files/*.wav
+dataset/
+denoiser/

@@ -50,13 +50,16 @@ def process_audio(audio_bytes, denoiser, transcriber):
         st.pyplot(plot_wave(denoised_wav, sr))
 
     _, text = transcribe(transcriber, denoised_file_path)
+    text = text or "(пусто)"
     st.header(f"Транскрипт:\n{text}")
 
 
 def main(denoiser, transcriber):
     st.title("Audio denoiser and trascriber 🤫")
     audio_recorder_input = audio_recorder(text="Запишите звук",
-                                          pause_threshold=5.0)
+                                          pause_threshold=5.0,
+                                          neutral_color="#1ceb6b",                                          
+                                          )
     uploaded_file = st.file_uploader("или загрузите файл",
                                      type=["wav", "mp3", "mp4", "ogg"])
     
@@ -70,6 +73,9 @@ def main(denoiser, transcriber):
 
 
 if __name__ == "__main__":
+    if not os.path.exists(STORAGE_FOLDER):
+        os.makedirs(STORAGE_FOLDER)
+        
     denoiser = load_denoiser()
     transcriber = load_transcriber()
     cold_run([denoiser, transcriber], [denoise, transcribe])
