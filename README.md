@@ -1,4 +1,4 @@
-# Web speech processor
+# Web speech denoiser and transcriber
 
 ```
 git clone https://github.com/sir-timio/web-denoiser.git
