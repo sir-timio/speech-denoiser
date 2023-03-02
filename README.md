@@ -16,4 +16,4 @@ conda activate env
 streamlit run app.py
 ```
 
-![image](demo.jpg)
+![image](front.jpg)
