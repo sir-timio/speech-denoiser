@@ -78,5 +78,5 @@ if __name__ == "__main__":
         
     denoiser = load_denoiser()
     transcriber = load_transcriber()
-    cold_run([denoiser, transcriber], [denoise, transcribe])
+    # cold_run([denoiser, transcriber], [denoise, transcribe])
     main(denoiser, transcriber)
