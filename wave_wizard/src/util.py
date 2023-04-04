@@ -5,6 +5,11 @@ from torch.nn import functional as F
 import torchaudio
 from collections import namedtuple
 
+import os
+import sys
+import json
+from pathlib import Path
+
 Info = namedtuple("Info", ["length", "sample_rate", "channels"])
 
 def get_info(path: str) -> Info:
@@ -16,6 +21,21 @@ def get_info(path: str) -> Info:
         siginfo = info[0]
         return Info(siginfo.length // siginfo.channels, siginfo.rate, siginfo.channels)
 
+def find_audio_files(path, exts=[".wav"], progress=True):
+    audio_files = []
+    for root, folders, files in os.walk(path, followlinks=True):
+        for file in files:
+            file = Path(root) / file
+            if file.suffix.lower() in exts:
+                audio_files.append(str(file.resolve()))
+    meta = []
+    for idx, file in enumerate(audio_files):
+        info = get_info(file)
+        meta.append((file, info.length))
+        if progress:
+            print(format((1 + idx) / len(audio_files), " 3.1%"), end='\r', file=sys.stderr)
+    meta.sort()
+    return meta
 
 def hz_to_mel(f):
     return 2595 * np.log10(1 + f / 700)
@@ -101,3 +121,9 @@ class LowPassFilters(torch.nn.Module):
 
     def __repr__(self):
         return "LossPassFilters(width={},cutoffs={})".format(self.width, self.cutoffs)
+
+if __name__ == "__main__":
+    meta = []
+    for path in sys.argv[1:]:
+        meta += find_audio_files(path)
+    json.dump(meta, sys.stdout, indent=4)

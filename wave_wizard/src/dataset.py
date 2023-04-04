@@ -1,18 +1,29 @@
 import torchaudio
 from torch.nn import functional as F
-from torch.utils.data import Dataset, DataLoader
-
+from torch.utils.data import Dataset, DataLoader, Subset
+import numpy as np
 import os
 import json
 import math
 
 from .util import convert_audio
 
+from clearml import Task, StorageManager
+
 
 def get_loader(config):
+    task = Task.init(project_name="examples", task_name="Pipeline step 1 dataset artifact")
+    
+    num_samples = config['dataset'].pop('num_samples', None)
     dataset = NoisyCleanSet(**config['dataset'])
-    return DataLoader(dataset, **config['dataloader'])
-
+    idx = np.arange(len(dataset))
+    if num_samples is not None:
+        idx = np.random.choice(idx, num_samples)
+        dataset = Subset(dataset, idx)
+    
+    data_loader = DataLoader(dataset, **config['dataloader'])
+    task.upload_artifact('data_loader', artifact_object=data_loader)
+    return data_loader
 
 class NoisyCleanSet(Dataset):
     def __init__(self, json_dir, length=None, stride=1,
@@ -53,7 +64,7 @@ class NoisyCleanSet(Dataset):
 class Audioset(Dataset):
     def __init__(self, files=None, length=None, stride=None,
                  pad=True, with_path=False, sample_rate=None,
-                 channels=None, convert=False):
+                 channels=None, convert=False, normalize=True):
         """
         files should be a list [(file, length)]
         """
@@ -65,6 +76,7 @@ class Audioset(Dataset):
         self.sample_rate = sample_rate
         self.channels = channels
         self.convert = convert
+        self.normalize = normalize
         for file, file_length in self.files:
             if length is None:
                 examples = 1
@@ -92,7 +104,8 @@ class Audioset(Dataset):
             if torchaudio.get_audio_backend() in ['soundfile', 'sox_io']:
                 out, sr = torchaudio.load(str(file),
                                           frame_offset=offset,
-                                          num_frames=num_frames or -1)
+                                          num_frames=num_frames or -1,
+                                          normalize=self.normalize)
             else:
                 out, sr = torchaudio.load(str(file), offset=offset, num_frames=num_frames)
             target_sr = self.sample_rate or sr
