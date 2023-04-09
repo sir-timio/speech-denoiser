@@ -1,0 +1,20 @@
+
+dataset:
+  args:
+    json_dir: 'dataset'
+    sample_rate: 22050
+    length: 11 # in seconds
+    train_samples: 1_000
+    val_samples: 500
+  dataloader:
+    batch_size: 32
+    num_workers: 10
+model:
+  depth: 3
+  scale: 2
+  init_hidden: 16
+  kernel_size: 7
+  stride: 1
+  padding: 3
+  encoder_class: 'BasicConv'
+  decoder_class: 'BasicDeConv'

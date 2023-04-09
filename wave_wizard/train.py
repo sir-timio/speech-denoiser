@@ -8,15 +8,31 @@ from src.dataset import get_loader
 from src.gatewave import LitGateWave
 from clearml import Task
 from clearml.automation import PipelineController
+import argparse
+import yaml
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('config', nargs='?', default='configs/config.yaml',
+            help='YAML configuration file')
+    return parser.parse_args()
+
+def load_config(args):
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    return config
 
 if __name__ == '__main__':
     pl.seed_everything(42)
-    
+
+    config = load_config(parse_args())
+    print(config)
+
     pipe = PipelineController(
         name="Pipeline demo", project="examples", version="0.0.1", add_pipeline_tags=False
     )
-    # task = Task.init(project_name="GateWave", task_name="Example")
+    task = Task.init(project_name="GateWave", task_name="Example")
+    
     SR = 22050
     SECS = 11
     length=SR*SECS
@@ -33,23 +49,11 @@ if __name__ == '__main__':
             'num_workers': 10,
         }
     })
+
     
-    pipe.add_parameter(
-        "data_config",
-        data_config,
-    )
     
-    pipe.set_default_execution_queue('default')
-    
-    pipe.add_step(
-        name="stage_data",
-        base_task_project="examples",
-        base_task_name="Pipeline step 1 dataset artifact",
-        parameter_override={"General/data_config": "${pipeline.data_config}"},
-    )
-    
-    # train_loader = get_loader(data_config)
-    # val_loader = get_loader(data_config)
+    train_loader = get_loader(config['dataset'])
+    val_loader = get_loader(config['dataset'])
 
     model_config = dict(
         depth=3, scale=2, init_hidden=32,
@@ -61,26 +65,19 @@ if __name__ == '__main__':
         "model_config",
         model_config,
     )
-    # model = LitGateWave(**model_config)
+    model = LitGateWave(**model_config)
+
+    pipe.start_locally()
+
     
-    pipe.add_step(
-        name="stage_train",
-        parents=["stage_data"],
-        base_task_project="examples",
-        base_task_name="Pipeline step 2 train model",
-        parameter_override={
-            "General/data_loader": "${stage_data.data_loader}",
-        },
+    trainer = pl.Trainer(
+        accelerator='gpu' if torch.cuda.is_available() else None,
+        devices=1,
+        check_val_every_n_epoch=1,
+        log_every_n_steps=50,
+        deterministic=True,
     )
-    # trainer = pl.Trainer(
-    #     accelerator='gpu' if torch.cuda.is_available() else None,
-    #     devices=1,
-    #     check_val_every_n_epoch=1,
-    #     log_every_n_steps=50,
-    #     deterministic=True,
-    # )
     
-    # task.connect(model_config)
+    task.connect(model_config)
     
-    # trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
-    # trainer.fit(model, train_dataloaders=data_loader)
+    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
