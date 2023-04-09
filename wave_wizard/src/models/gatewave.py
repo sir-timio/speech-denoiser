@@ -5,7 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 import math
 
-from .blocks import BasicConv, BasicDeConv, GatedConv, GatedDeConv
+from ..blocks import BasicConv, BasicDeConv, GatedConv, GatedDeConv
 
 
 class LitGateWave(pl.LightningModule):
