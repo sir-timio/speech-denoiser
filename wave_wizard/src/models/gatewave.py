@@ -53,15 +53,19 @@ class LitGateWave(pl.LightningModule):
             length = (length - 1) * self.hparams.stride + self.hparams.kernel_size
         return int(length)
 
-    def forward(self, x):
+    def pad(self, x):
         length = x.shape[-1]
-        x = F.pad(x, (0, self.valid_length(length) - length))
+        return F.pad(x, (0, self.valid_length(length) - length))
+    
+    def forward(self, x):
         latent = self.encoder(x)
         output = self.decoder(latent)
         return output
 
     def training_step(self, batch, batch_idx):
         noisy, clean = batch
+        noisy = self.pad(noisy)
+        clean = self.pad(clean)
         denoised = self(noisy)
         loss = self.loss_fn(denoised, clean)
         self.log('train_loss', loss)
@@ -69,6 +73,8 @@ class LitGateWave(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         noisy, clean = batch
+        noisy = self.pad(noisy)
+        clean = self.pad(clean)
         denoised = self(noisy)
         loss = self.loss_fn(denoised, clean)
         self.log('val_loss', loss)

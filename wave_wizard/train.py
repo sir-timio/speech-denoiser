@@ -24,34 +24,11 @@ def load_config(args):
 
 if __name__ == '__main__':
     pl.seed_everything(42)
-
     config = load_config(parse_args())
-    print(config)
-
-    pipe = PipelineController(
-        name="Pipeline demo", project="examples", version="0.0.1", add_pipeline_tags=False
-    )
     task = Task.init(project_name="GateWave", task_name="Example")
     
-    SR = 22050
-    SECS = 11
-    length=SR*SECS
-    sample_rate=22050
-    data_config = dict({
-        'dataset': {
-            'json_dir': 'dataset',
-            'length': SR*SECS,
-            'sample_rate': SR,
-            'num_samples': 10_000,
-        },
-        'dataloader': {
-            'batch_size': 32,
-            'num_workers': 10,
-        }
-    })
+    print(config)
 
-    
-    
     train_loader = get_loader(config['dataset'])
     val_loader = get_loader(config['dataset'])
 
@@ -61,15 +38,8 @@ if __name__ == '__main__':
         encoder_class=BasicConv,
         decoder_class=BasicDeConv
     )
-    pipe.add_parameter(
-        "model_config",
-        model_config,
-    )
+
     model = LitGateWave(**model_config)
-
-    pipe.start_locally()
-
-    
     trainer = pl.Trainer(
         accelerator='gpu' if torch.cuda.is_available() else None,
         devices=1,
@@ -77,7 +47,5 @@ if __name__ == '__main__':
         log_every_n_steps=50,
         deterministic=True,
     )
-    
     task.connect(model_config)
-    
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

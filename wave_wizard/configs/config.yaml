@@ -1,11 +1,12 @@
 
 dataset:
   args:
-    json_dir: 'dataset'
+    json_dir: '../dataset'
     sample_rate: 22050
     length: 11 # in seconds
-    train_samples: 1_000
-    val_samples: 500
+    num_samples: 1_000
+    # train_samples: 1_000
+    # val_samples: 500
   dataloader:
     batch_size: 32
     num_workers: 10

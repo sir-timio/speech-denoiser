@@ -8,23 +8,15 @@ import math
 
 from .util import convert_audio
 
-from clearml import Task, StorageManager
-
-def get_train_val_loaders(config):
-    pass
 
 def get_loader(config):
-    # task = Task.init(project_name="examples", task_name="Pipeline step 1 dataset artifact")
-    
-    num_samples = config['dataset'].pop('num_samples', None)
+    num_samples = config['args'].pop('num_samples', None)
     dataset = NoisyCleanSet(**config['args'])
     idx = np.arange(len(dataset))
     if num_samples is not None:
         idx = np.random.choice(idx, num_samples)
         dataset = Subset(dataset, idx)
-    
     data_loader = DataLoader(dataset, **config['dataloader'])
-    # task.upload_artifact('data_loader', artifact_object=data_loader)
     return data_loader
 
 class NoisyCleanSet(Dataset):
