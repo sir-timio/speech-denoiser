@@ -180,7 +180,7 @@ class Demucs(nn.Module):
     @property
     def total_stride(self):
         return self.stride ** self.depth // self.resample
-
+    
     def forward(self, mix):
         if mix.dim() == 2:
             mix = mix.unsqueeze(1)

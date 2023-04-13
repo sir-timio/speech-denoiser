@@ -83,6 +83,19 @@ def convert_audio(wav, from_samplerate, to_samplerate, channels):
     wav = convert_audio_channels(wav, channels)
     return julius.resample_frac(wav, from_samplerate, to_samplerate)
 
+def sample_fixed_length_data_aligned(data_a, data_b, sample_length):
+    """sample with fixed length from two dataset
+    """
+    assert len(data_a) == len(data_b), "Inconsistent dataset length, unable to sampling"
+    assert len(data_a) >= sample_length, f"len(data_a) is {len(data_a)}, sample_length is {sample_length}."
+
+    frames_total = len(data_a)
+
+    start = np.random.randint(frames_total - sample_length + 1)
+    # print(f"Random crop from: {start}")
+    end = start + sample_length
+
+    return data_a[start:end], data_b[start:end]
 
 class LowPassFilters(torch.nn.Module):
     """

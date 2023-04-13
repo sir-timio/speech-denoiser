@@ -1,8 +1,0 @@
-decoder_class: !!python/name:src.blocks.gated.GatedDeConv ''
-depth: 3
-encoder_class: !!python/name:src.blocks.gated.GatedConv ''
-init_hidden: 32
-kernel_size: 7
-padding: 2
-scale: 2
-stride: 1

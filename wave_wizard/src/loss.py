@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 
 
+
 def stft(x, fft_size, hop_size, win_length, window):
     """Perform STFT and convert to magnitude spectrogram.
     Args:
@@ -15,7 +16,7 @@ def stft(x, fft_size, hop_size, win_length, window):
     Returns:
         Tensor: Magnitude spectrogram (B, #frames, fft_size // 2 + 1).
     """
-    x_stft = torch.view_as_real(torch.stft(x, fft_size, hop_size, win_length, window, return_complex=True))
+    x_stft = torch.view_as_real(torch.stft(x, fft_size, hop_size, win_length, window.to('cuda'), return_complex=True))
     real = x_stft[..., 0]
     imag = x_stft[..., 1]
 

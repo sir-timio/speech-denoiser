@@ -1,21 +1,59 @@
-
+seed: 42
 dataset:
-  args:
-    json_dir: '../dataset'
-    sample_rate: 22050
-    length: 11 # in seconds
-    num_samples: 1_000
-    # train_samples: 1_000
-    # val_samples: 500
-  dataloader:
-    batch_size: 32
-    num_workers: 10
-model:
-  depth: 3
+  shift: 4000
+  sample_len: 16384
+  sample_rate: 16000
+  train:
+    ann_path: 'dataset/train.txt'
+    dataloader:
+      batch_size: 32
+      num_workers: 10
+  val:
+    ann_path: 'dataset/val.txt'
+    dataloader:
+      batch_size: 1
+      num_workers: 10
+
+
+gatewave:
+  depth: 5
   scale: 2
   init_hidden: 16
   kernel_size: 7
   stride: 1
   padding: 3
-  encoder_class: 'BasicConv'
-  decoder_class: 'BasicDeConv'
+  encoder_class: 'BasicConv' # 'BasicConv' or 'GatedConv'
+  decoder_class: 'BasicDeConv' # 'BasicDeConv' or 'GatedDeConv'
+
+demucs:
+  chin: 1
+  chout: 1
+  hidden: 48
+  max_hidden: 10000
+  causal: true
+  glu: true
+  depth: 5
+  kernel_size: 8
+  stride: 4
+  normalize: true
+  resample: 4
+  growth: 2
+  rescale: 0.1
+
+optim:
+  lr: 0.00001
+
+loss:
+  stft_sc_factor: 0.5
+  stft_mag_factor: 0.5
+
+trainer:
+  sample_rate: 16000  #16000
+  resume:
+  debug_interval: 3
+  epochs: 1200
+  sample_length: 16384
+  base_dir: '../results/'
+  spectro_dir: 'speech'
+  exp_name: 'demucs_w_cuts'
+  cudnn_deterministic: True
