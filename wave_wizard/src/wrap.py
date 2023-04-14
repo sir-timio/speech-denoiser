@@ -12,7 +12,6 @@ from torchmetrics.audio import (
     ShortTimeObjectiveIntelligibility,
     SignalNoiseRatio,
 )
-# from augment import Augment
 
 
 class LitModel(pl.LightningModule):
@@ -21,15 +20,15 @@ class LitModel(pl.LightningModule):
         self.model = model
         self.loss_fn = loss_fn
         self.config = config
-        self.stoi = ShortTimeObjectiveIntelligibility(config.trainer.sample_rate, extended=False)
-        self.pesq = PerceptualEvaluationSpeechQuality(config.trainer.sample_rate, mode="wb")
+        self.stoi = ShortTimeObjectiveIntelligibility(config['trainer']['sample_rate'], extended=False)
+        self.pesq = PerceptualEvaluationSpeechQuality(config['trainer']['sample_rate'], mode="wb")
         self.snr = SignalNoiseRatio()
         self.writer = writer
 
     def configure_optimizers(self):
         return optim.Adam(
             self.model.parameters(),
-            lr=self.config.optim.lr,
+            lr=self.config['optim']['lr'],
             weight_decay=1e-06,
         )
 

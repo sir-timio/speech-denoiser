@@ -51,13 +51,13 @@ if __name__ == '__main__':
     task = Task.init(project_name="GateWave", task_name=config['model']['type'])
     logger = task.get_logger()
     writer = SummaryWriter(config['trainer']['log_dir'])
-    pl.seed_everything(config.seed)
+    pl.seed_everything(config['seed'])
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         
     mrstftloss = MultiResolutionSTFTLoss(
-        factor_sc=config.loss.stft_sc_factor,
-        factor_mag=config.loss.stft_mag_factor,
+        factor_sc=config['loss']['stft_sc_factor'],
+        factor_mag=config['loss']['stft_mag_factor'],
     )
     
     def loss_fn(x, y):
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     pl_model = LitModel(config, model, loss_fn, logger)
     
     checkpoint_path = os.path.join(
-        config.trainer.base_dir, config.trainer.exp_name, "checkpoints"
+        config['trainer']['base_dir'], config['trainer']['exp_name'], "checkpoints"
     )
     os.makedirs(checkpoint_path, exist_ok=True)
     checkpoint_callback = ModelCheckpoint(
