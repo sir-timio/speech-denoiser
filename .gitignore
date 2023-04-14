@@ -135,3 +135,8 @@ files
 files/*.wav
 dataset/
 denoiser/
+.vscode
+lightning_logs
+output_
+output
+tb_logs
