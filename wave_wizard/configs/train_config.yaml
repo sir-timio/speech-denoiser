@@ -58,8 +58,11 @@ loss:
 trainer:
   sample_rate: 16000  #16000
   resume:
-  debug_interval: 5
-  epochs: 300
+  debug_interval: 25
+  metric_interval: 10
+  val_interval: 5
+  log_steps: 50
+  epochs: -1
   sample_length: 16384
   base_dir: 'output'
   exp_name: 'demucs'

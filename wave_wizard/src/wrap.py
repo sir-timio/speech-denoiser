@@ -7,9 +7,11 @@ import pytorch_lightning as pl
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
-from src.metrics import compute_STOI, compute_PESQ
-from torchmetrics.audio.pesq import PerceptualEvaluationSpeechQuality
-from torchmetrics.audio.stoi import ShortTimeObjectiveIntelligibility
+from torchmetrics.audio import (
+    PerceptualEvaluationSpeechQuality,
+    ShortTimeObjectiveIntelligibility,
+    SignalNoiseRatio,
+)
 # from augment import Augment
 
 
@@ -19,10 +21,9 @@ class LitModel(pl.LightningModule):
         self.model = model
         self.loss_fn = loss_fn
         self.config = config
-        self.sample_rate = config.trainer.sample_rate
-        self.debug_interval = config.trainer.debug_interval
-        self.stoi = ShortTimeObjectiveIntelligibility(self.sample_rate, extended=False)
-        self.pesq = PerceptualEvaluationSpeechQuality(self.sample_rate, mode="wb")
+        self.stoi = ShortTimeObjectiveIntelligibility(config.trainer.sample_rate, extended=False)
+        self.pesq = PerceptualEvaluationSpeechQuality(config.trainer.sample_rate, mode="wb")
+        self.snr = SignalNoiseRatio()
         self.writer = writer
 
     def configure_optimizers(self):
@@ -63,6 +64,8 @@ class LitModel(pl.LightningModule):
         
         self.stoi(enhanced, clean)
         self.pesq(enhanced, clean)
+        self.snr(enhanced, clean)
         
         self.log('stoi', self.stoi)
         self.log('pesq', self.pesq)
+        self.log('snr', self.snr)

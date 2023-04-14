@@ -138,5 +138,5 @@ denoiser/
 .vscode
 lightning_logs
 output_
-checkpoints
+output
 tb_logs

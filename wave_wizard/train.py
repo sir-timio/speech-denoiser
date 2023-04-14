@@ -17,21 +17,21 @@ from src.models.demucs import Demucs
 from src.models.gatewave import GateWave
 from src.models.unet import WaveUnet
 from pytorch_lightning.callbacks import ModelCheckpoint
-from src.callbacks import AudioVisualizationCallback
+from src.callbacks import AudioVisualizationCallback, MetricCallback
 from torch.utils.tensorboard import SummaryWriter
 from src.wrap import LitModel
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('config', nargs='?', default='configs/config.yaml',
+    parser.add_argument('config', nargs='?', default='configs/train_config.yaml',
             help='YAML configuration file')
     return parser.parse_args()
 
 def load_config(args):
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-    return DictConfig(config)
+    return config
 
 def get_model(config):
     name = config['model']['type']
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         writer,
         every_n_epochs=config['trainer']['debug_interval'],
         )
-    
+    metric_callback = MetricCallback(test_loader, config['trainer']['metric_interval'])
     model = get_model(config)
     
     pl_model = LitModel(config, model, loss_fn, logger)
@@ -90,11 +90,12 @@ if __name__ == '__main__':
     )
     trainer = pl.Trainer(
         accelerator='gpu' if device == 'cuda' else None,
+        max_epochs=config['trainer']['epochs'],
         devices=1,
-        check_val_every_n_epoch=5,
-        log_every_n_steps=50,
+        check_val_every_n_epoch=config['trainer']['val_interval'],
+        log_every_n_steps=config['trainer']['log_steps'],
         deterministic=False,
-        callbacks=[vis_callback, checkpoint_callback]
+        callbacks=[vis_callback, checkpoint_callback, metric_callback],
     )
     task.connect(config)
     trainer.fit(pl_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
