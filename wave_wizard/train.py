@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
-from src.dataset import get_train_val_loaders
+from src.dataset import get_train_val_test_loaders
 from clearml import Task
 import argparse
 import yaml
@@ -16,7 +16,11 @@ from src.loss import MultiResolutionSTFTLoss
 from src.models.demucs import Demucs
 from src.models.gatewave import GateWave
 from src.models.unet import WaveUnet
+from pytorch_lightning.callbacks import ModelCheckpoint
+from src.callbacks import AudioVisualizationCallback
+from torch.utils.tensorboard import SummaryWriter
 from src.wrap import LitModel
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -29,44 +33,68 @@ def load_config(args):
         config = yaml.load(f, Loader=yaml.FullLoader)
     return DictConfig(config)
 
-def get_model(name, config):
+def get_model(config):
+    name = config['model']['type']
     if name == 'gatewave':
-        return GateWave(**config['gatewave'])
+        cls = GateWave
     elif name == 'demucs':
-        return Demucs(**config['demucs'])
+        cls = Demucs
     elif name == 'waveunet':
-        return WaveUnet()
-    raise Exception("Unknown architecture")
+        cls = WaveUnet
+    else:
+        raise Exception("Unknown architecture")
+
+    return cls(**config['model']['args'])
 
 if __name__ == '__main__':
     config = load_config(parse_args())
-    MODEL_NAME = 'gatewave'
-    task = Task.init(project_name="GateWave", task_name=MODEL_NAME)
-    pl.seed_everything(config.seed)    
-    
-    # loss_fn = torch.nn.MSELoss()
-    
+    task = Task.init(project_name="GateWave", task_name=config['model']['type'])
+    logger = task.get_logger()
+    writer = SummaryWriter(config['trainer']['log_dir'])
+    pl.seed_everything(config.seed)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+        
     mrstftloss = MultiResolutionSTFTLoss(
         factor_sc=config.loss.stft_sc_factor,
         factor_mag=config.loss.stft_mag_factor,
     )
+    
     def loss_fn(x, y):
         sc_loss, mag_loss = mrstftloss(x.squeeze(1), y.squeeze(1))
         return F.l1_loss(x, y) + sc_loss + mag_loss
     
-    train_loader, val_loader = get_train_val_loaders(config['dataset'])
+    train_loader, val_loader, test_loader = get_train_val_test_loaders(config['dataset'])
 
-    model = get_model(MODEL_NAME, config)
+    vis_callback = AudioVisualizationCallback(
+        test_loader,
+        writer,
+        every_n_epochs=config['trainer']['debug_interval'],
+        )
     
-    pl_model = LitModel(config, model, loss_fn, task.get_logger())
+    model = get_model(config)
     
+    pl_model = LitModel(config, model, loss_fn, logger)
     
+    checkpoint_path = os.path.join(
+        config.trainer.base_dir, config.trainer.exp_name, "checkpoints"
+    )
+    os.makedirs(checkpoint_path, exist_ok=True)
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=checkpoint_path,
+        filename="best-checkpoint",
+        verbose=True,
+        monitor="val_loss",
+        mode="min",
+        save_weights_only=False,
+    )
     trainer = pl.Trainer(
-        accelerator='gpu' if torch.cuda.is_available() else None,
+        accelerator='gpu' if device == 'cuda' else None,
         devices=1,
-        check_val_every_n_epoch=1,
-        log_every_n_steps=1,
+        check_val_every_n_epoch=5,
+        log_every_n_steps=50,
         deterministic=False,
+        callbacks=[vis_callback, checkpoint_callback]
     )
     task.connect(config)
     trainer.fit(pl_model, train_dataloaders=train_loader, val_dataloaders=val_loader)

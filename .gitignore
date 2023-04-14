@@ -139,3 +139,4 @@ denoiser/
 lightning_logs
 output_
 checkpoints
+tb_logs

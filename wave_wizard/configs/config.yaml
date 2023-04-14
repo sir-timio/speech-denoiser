@@ -11,34 +11,42 @@ dataset:
   val:
     ann_path: 'dataset/val.txt'
     dataloader:
+      batch_size: 32
+      num_workers: 10
+  test:
+    ann_path: 'dataset/test.txt'
+    dataloader:
       batch_size: 1
       num_workers: 10
 
+# model:
+#   type: gatewave
+#   args:
+#     depth: 5
+#     scale: 2
+#     init_hidden: 16
+#     kernel_size: 7
+#     stride: 1
+#     padding: 3
+#     encoder_class: 'BasicConv' # 'BasicConv' or 'GatedConv'
+#     decoder_class: 'BasicDeConv' # 'BasicDeConv' or 'GatedDeConv'
 
-gatewave:
-  depth: 5
-  scale: 2
-  init_hidden: 16
-  kernel_size: 7
-  stride: 1
-  padding: 3
-  encoder_class: 'BasicConv' # 'BasicConv' or 'GatedConv'
-  decoder_class: 'BasicDeConv' # 'BasicDeConv' or 'GatedDeConv'
-
-demucs:
-  chin: 1
-  chout: 1
-  hidden: 48
-  max_hidden: 10000
-  causal: true
-  glu: true
-  depth: 5
-  kernel_size: 8
-  stride: 4
-  normalize: true
-  resample: 4
-  growth: 2
-  rescale: 0.1
+model:
+  type: demucs
+  args:
+    chin: 1
+    chout: 1
+    hidden: 48
+    max_hidden: 10000
+    causal: true
+    glu: true
+    depth: 5
+    kernel_size: 8
+    stride: 4
+    normalize: true
+    resample: 4
+    growth: 2
+    rescale: 0.1
 
 optim:
   lr: 0.00001
@@ -50,10 +58,10 @@ loss:
 trainer:
   sample_rate: 16000  #16000
   resume:
-  debug_interval: 3
-  epochs: 1200
+  debug_interval: 5
+  epochs: 300
   sample_length: 16384
-  base_dir: '../results/'
-  spectro_dir: 'speech'
-  exp_name: 'demucs_w_cuts'
+  base_dir: 'output'
+  exp_name: 'demucs'
+  log_dir: 'tb_logs'
   cudnn_deterministic: True
