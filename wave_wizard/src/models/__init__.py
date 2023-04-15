@@ -1,3 +1,4 @@
 from .demucs import Demucs
-from .unet import WaveUnet
+from .waveunet import WaveUnet
 from .gatewave import GateWave
+from .resample import *

@@ -3,7 +3,6 @@ from torch import nn
 from torch.nn import functional as F
 
 
-
 def rescale_conv(conv, reference):
     std = conv.weight.std().detach()
     scale = (std / reference) ** 0.5
@@ -18,7 +17,7 @@ def rescale_module(module, reference):
             rescale_conv(sub, reference)
 
 
-class GateWave(nn.Module):
+class WaveUnet(nn.Module):
     """
     Demucs speech enhancement model.
     Args:
@@ -44,14 +43,15 @@ class GateWave(nn.Module):
         self,
         chin=1,
         chout=1,
-        hidden=48,
-        depth=12,
+        hidden=24,
+        depth=5,
         normalize=True,
         rescale=0.1,
         floor=1e-3,
     ):
 
         super().__init__()
+
         self.chin = chin
         self.chout = chout
         self.hidden = hidden
@@ -88,7 +88,6 @@ class GateWave(nn.Module):
         if rescale:
             rescale_module(self, reference=rescale)
 
-    
     def forward(self, mix):
         if mix.dim() == 2:
             mix = mix.unsqueeze(1)
@@ -106,7 +105,8 @@ class GateWave(nn.Module):
             x = encode(x)
             skips.append(x)
             x = x[:, :, ::2]
-
+            
+        # x = self.middle(x)
         for decode in self.decoder:
             skip = skips.pop(-1)
             x = F.interpolate(x, scale_factor=2, mode="linear", align_corners=True)
@@ -118,6 +118,6 @@ class GateWave(nn.Module):
 if __name__ == "__main__":
     model = WaveUnet()
     
-    y = torch.rand((4, 1, 16384))
+    y = torch.rand((16, 1, 16384))
     
     print(model(y).shape)

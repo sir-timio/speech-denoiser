@@ -105,7 +105,6 @@ class Demucs(nn.Module):
         glu=True,
         rescale=0.1,
         floor=1e-3,
-        
     ):
 
         super().__init__()
@@ -152,8 +151,8 @@ class Demucs(nn.Module):
             chout = hidden
             chin = hidden
             hidden = min(int(growth * hidden), max_hidden)
-
-        self.lstm = BLSTM(chin, bi=not causal)
+        
+        self.rnn = BLSTM(chin, bi=not causal)
         if rescale:
             rescale_module(self, reference=rescale)
 
@@ -208,7 +207,7 @@ class Demucs(nn.Module):
             x = encode(x)
             skips.append(x)
         x = x.permute(2, 0, 1)
-        x, _ = self.lstm(x)
+        x, _ = self.rnn(x)
         x = x.permute(1, 2, 0)
         for decode in self.decoder:
             skip = skips.pop(-1)

@@ -9,13 +9,12 @@ from src.dataset import get_train_val_test_loaders
 from clearml import Task
 import argparse
 import yaml
-from omegaconf import DictConfig
 
 from src.loss import MultiResolutionSTFTLoss
 # from src.models import Demucs, GateWave, WaveUnet
 from src.models.demucs import Demucs
 from src.models.gatewave import GateWave
-from src.models.unet import WaveUnet
+from src.models.waveunet import WaveUnet
 from pytorch_lightning.callbacks import ModelCheckpoint
 from src.callbacks import AudioVisualizationCallback, MetricCallback
 from torch.utils.tensorboard import SummaryWriter
@@ -24,7 +23,7 @@ from src.wrap import LitModel
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('config', nargs='?', default='configs/train_config.yaml',
+    parser.add_argument('--config', nargs='?', default='configs/train_config.yaml',
             help='YAML configuration file')
     return parser.parse_args()
 
@@ -75,7 +74,6 @@ if __name__ == '__main__':
     model = get_model(config)
     
     pl_model = LitModel(config, model, loss_fn, logger)
-    
     checkpoint_path = os.path.join(
         config['trainer']['base_dir'], config['trainer']['exp_name'], "checkpoints"
     )
