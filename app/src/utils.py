@@ -2,7 +2,6 @@ import io
 import numpy as np
 import librosa
 from matplotlib import pyplot as plt
-# plt.rcParams["figure.figsize"] = (10, 5)
 
 
 def plot_wave(wav: np.ndarray, sr: int, figsize: tuple = (20, 10)) -> plt.figure:

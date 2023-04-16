@@ -12,14 +12,16 @@ from pathlib import Path
 
 Info = namedtuple("Info", ["length", "sample_rate", "channels"])
 
+
 def get_info(path: str) -> Info:
     info = torchaudio.info(path)
-    if hasattr(info, 'num_frames'):
+    if hasattr(info, "num_frames"):
         # new version of torchaudio
         return Info(info.num_frames, info.sample_rate, info.num_channels)
     else:
         siginfo = info[0]
         return Info(siginfo.length // siginfo.channels, siginfo.rate, siginfo.channels)
+
 
 def find_audio_files(path, exts=[".wav"], progress=True):
     audio_files = []
@@ -33,16 +35,19 @@ def find_audio_files(path, exts=[".wav"], progress=True):
         info = get_info(file)
         meta.append((file, info.length))
         if progress:
-            print(format((1 + idx) / len(audio_files), " 3.1%"), end='\r', file=sys.stderr)
+            print(
+                format((1 + idx) / len(audio_files), " 3.1%"), end="\r", file=sys.stderr
+            )
     meta.sort()
     return meta
+
 
 def hz_to_mel(f):
     return 2595 * np.log10(1 + f / 700)
 
 
 def mel_to_hz(m):
-    return 700 * (10**(m / 2595) - 1)
+    return 700 * (10 ** (m / 2595) - 1)
 
 
 def mel_frequencies(n_mels, fmin, fmax):
@@ -74,7 +79,9 @@ def convert_audio_channels(wav, channels=2):
         wav = wav[..., :channels, :]
     else:
         # Case 4: What is a reasonable choice here?
-        raise ValueError('The audio file has less channels than requested but is not mono.')
+        raise ValueError(
+            "The audio file has less channels than requested but is not mono."
+        )
     return wav
 
 
@@ -83,11 +90,13 @@ def convert_audio(wav, from_samplerate, to_samplerate, channels):
     wav = convert_audio_channels(wav, channels)
     return julius.resample_frac(wav, from_samplerate, to_samplerate)
 
+
 def sample_fixed_length_data_aligned(data_a, data_b, sample_length):
-    """sample with fixed length from two dataset
-    """
+    """sample with fixed length from two dataset"""
     assert len(data_a) == len(data_b), "Inconsistent dataset length, unable to sampling"
-    assert len(data_a) >= sample_length, f"len(data_a) is {len(data_a)}, sample_length is {sample_length}."
+    assert (
+        len(data_a) >= sample_length
+    ), f"len(data_a) is {len(data_a)}, sample_length is {sample_length}."
 
     frames_total = len(data_a)
 
@@ -96,6 +105,7 @@ def sample_fixed_length_data_aligned(data_a, data_b, sample_length):
     end = start + sample_length
 
     return data_a[start:end], data_b[start:end]
+
 
 class LowPassFilters(torch.nn.Module):
     """
@@ -134,6 +144,7 @@ class LowPassFilters(torch.nn.Module):
 
     def __repr__(self):
         return "LossPassFilters(width={},cutoffs={})".format(self.width, self.cutoffs)
+
 
 if __name__ == "__main__":
     meta = []

@@ -15,8 +15,7 @@ def denoise(model, file_path: str) -> torch.Tensor:
         torch.Tensor: _description_
     """
     wav, sr = librosa.load(file_path)
-    wav = convert_audio(
-        torch.tensor(wav[None, :]), sr, model.sample_rate, model.chin)
+    wav = convert_audio(torch.tensor(wav[None, :]), sr, model.sample_rate, model.chin)
     with torch.no_grad():
         denoised = model(wav[None])[0]
     return denoised
@@ -36,7 +35,7 @@ def transcribe(model, file_path: str) -> Tuple:
     return result["language"], result["text"]
 
 
-def cold_run(models, funcs: callable, file_path: str = 'cold_run.wav'):
+def cold_run(models, funcs: callable, file_path: str = "cold_run.wav"):
     """cold run for models
 
     Args:
