@@ -34,12 +34,12 @@ dataset:
 model:
   type: gatewave
   args:
-    depth: 3
-    scale: 1.7
+    depth: 5
+    scale: 2
     init_hidden: 32
-    kernel_size: 7
+    kernel_size: 8
     stride: 4
-    padding: 2
+    padding: 0
     encoder_class: "GatedConv" # 'BasicConv' or 'GatedConv'
     decoder_class: "GatedDeConv" # 'BasicDeConv' or 'GatedDeConv'
     normalize: True
