@@ -1,123 +1,139 @@
-import torch
 from torch import nn
 from torch.nn import functional as F
+import math
+import sys
+
+sys.path.append("../..")
+from src.blocks import *  # noqa
+from .util import rescale_conv, rescale_module
 
 
+class BGRU(nn.Module):
+    def __init__(self, dim, layers=1, bi=True):
+        super().__init__()
+        klass = nn.GRU
+        self.rnn = klass(
+            bidirectional=bi,
+            num_layers=layers,
+            hidden_size=dim,
+            input_size=dim,
+        )
+        self.linear = None
+        if bi:
+            self.linear = nn.Linear(2 * dim, dim)
 
-def rescale_conv(conv, reference):
-    std = conv.weight.std().detach()
-    scale = (std / reference) ** 0.5
-    conv.weight.data /= scale
-    if conv.bias is not None:
-        conv.bias.data /= scale
-
-
-def rescale_module(module, reference):
-    for sub in module.modules():
-        if isinstance(sub, (nn.Conv1d, nn.ConvTranspose1d)):
-            rescale_conv(sub, reference)
+    def forward(self, x, hidden=None):
+        x, hidden = self.rnn(x, hidden)
+        if self.linear:
+            x = self.linear(x)
+        return x, hidden
 
 
 class GateWave(nn.Module):
-    """
-    Demucs speech enhancement model.
-    Args:
-        - chin (int): number of input channels.
-        - chout (int): number of output channels.
-        - hidden (int): number of initial hidden channels.
-        - depth (int): number of layers.
-        - kernel_size (int): kernel size for each layer.
-        - stride (int): stride for each layer.
-        - causal (bool): if false, uses BiLSTM instead of LSTM.
-        - resample (int): amount of resampling to apply to the input/output.
-            Can be one of 1, 2 or 4.
-        - growth (float): number of channels is multiplied by this for every layer.
-        - max_hidden (int): maximum number of channels. Can be useful to
-            control the size/speed of the model.
-        - normalize (bool): if true, normalize the input.
-        - glu (bool): if true uses GLU instead of ReLU in 1x1 convolutions.
-        - rescale (float): controls custom weight initialization.
-            See https://arxiv.org/abs/1911.13254.
-        - floor (float): stability flooring when normalizing.
-    """
     def __init__(
         self,
-        chin=1,
-        chout=1,
-        hidden=48,
-        depth=12,
+        depth=3,
+        scale=1.618,
+        init_hidden=32,
+        kernel_size=7,
+        stride=1,
+        padding=2,
+        encoder_class="GatedConv",
+        decoder_class="GatedDeConv",
         normalize=True,
-        rescale=0.1,
-        floor=1e-3,
     ):
+        """GateWave
 
-        super().__init__()
-        self.chin = chin
-        self.chout = chout
-        self.hidden = hidden
+        Args:
+            depth (int, optional): number of layers. Defaults to 3.
+            scale (float, optional): _description_. Defaults to 1.618.
+            init_hidden (int, optional): number of initial hidden channels. Defaults to 32.
+            kernel_size (int, optional): kernel size for each layer. Defaults to 7.
+            stride (int, optional): stride for each layer. Defaults to 1.
+            padding (int, optional): padding for each layer. Defaults to 2.
+            encoder_class (str, optional): GatedConv or BacisConv. Defaults to "GatedConv".
+            decoder_class (str, optional): GatedDeConv or BasicDeConv. Defaults to "GatedDeConv".
+            normalize (bool, optional): if true, normalize input. Defaults to True.
+        """
+        super(GateWave, self).__init__()
         self.depth = depth
-        self.floor = floor
+        self.kernel_size = kernel_size
+        self.stride = stride
+        in_channels = 1
+        out_channels = 1
         self.normalize = normalize
-
+        self.floor = 1e-3
+        encoders = []
+        decoders = []
         self.encoder = nn.ModuleList()
         self.decoder = nn.ModuleList()
-        for index in range(depth):
-            encode = []
-            encode += [
-                nn.Conv1d(chin, hidden, 15, 1, 7),
-                nn.BatchNorm1d(hidden),
-                nn.LeakyReLU(negative_slope=0.1),
-            ]
-            self.encoder.append(nn.Sequential(*encode))
 
-            decode = []
-            decode += [
-                nn.Conv1d(hidden, chout, 5, 1, 2),
-                nn.BatchNorm1d(chout),
-                nn.LeakyReLU(negative_slope=0.1),
-            ]
+        hidden = init_hidden
+        in_ch = in_channels
+        for i in range(depth):
+            encoder = eval(encoder_class)(
+                in_channels, hidden, kernel_size, stride, padding
+            )
+            self.encoder.append(encoder)
+            encoders.append(encoder)
 
-            self.decoder.insert(0, nn.Sequential(*decode))
-            chout = hidden
-            chin = hidden
-            hidden += hidden
-        
-        self.middle = nn.Sequential(
-            nn.Conv1d(depth * hidden, depth * hidden, 15, 1, 7)
-        )
-        if rescale:
-            rescale_module(self, reference=rescale)
+            decoder = eval(decoder_class)(
+                hidden, out_channels, kernel_size, stride, padding
+            )
+            decoders.append(decoders)
 
-    
-    def forward(self, mix):
-        if mix.dim() == 2:
-            mix = mix.unsqueeze(1)
+            self.decoder.insert(0, decoder)
+            out_channels = hidden
+            in_channels = hidden
+            hidden = int(hidden * scale)
 
+        self.rnn = BGRU(in_channels, bi=True)
+
+    def valid_length(self, length):
+        """
+        Return the nearest valid length to use with the model so that
+        there is no time steps left over in a convolutions, e.g. for all
+        layers, size of the input - kernel_size % stride = 0.
+        If the mixture has a valid length, the estimated sources
+        will have exactly the same length.
+        """
+        for idx in range(self.depth):
+            length = math.ceil((length - self.kernel_size) / self.stride) + 1
+            length = max(length, 1)
+        for idx in range(self.depth):
+            length = (length - 1) * self.stride + self.kernel_size
+        return int(length)
+
+    def forward(self, x):
         if self.normalize:
-            mono = mix.mean(dim=1, keepdim=True)
+            mono = x.mean(dim=1, keepdim=True)
             std = mono.std(dim=-1, keepdim=True)
-            mix = mix / (self.floor + std)
+            x = x / (self.floor + std)
         else:
             std = 1
-        x = mix
-        
+        length = x.shape[-1]
+        x = F.pad(x, (0, self.valid_length(length) - length))
         skips = []
         for encode in self.encoder:
             x = encode(x)
             skips.append(x)
-            x = x[:, :, ::2]
 
+        x = x.permute(2, 0, 1)
+        x, _ = self.rnn(x)
+        x = x.permute(1, 2, 0)
         for decode in self.decoder:
             skip = skips.pop(-1)
-            x = F.interpolate(x, scale_factor=2, mode="linear", align_corners=True)
             x = x + skip[..., : x.shape[-1]]
             x = decode(x)
 
+        x = x[..., :length]
         return std * x
-    
+
+
 if __name__ == "__main__":
-    model = WaveUnet()
-    
-    y = torch.rand((4, 1, 16384))
-    
+    import torch
+
+    model = GateWave()
+    print(model)
+    y = torch.rand((16, 1, 16384))
     print(model(y).shape)

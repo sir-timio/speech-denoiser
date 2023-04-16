@@ -1,10 +1,33 @@
 # Web speech denoiser and transcriber
 
+
+<!-- краткий отчет о проведенных экспериментах
+код обучения моделей
+обоснование выбора моделей и гиперпараметров
+описание кода обучения -->
+
 Краткий отчет о проведенных эксприментах:
 
-Было реализованно 2 варианта архитектура: Wave-Unet и Demucs
-архитектура взята из https://github.com/facebookresearch/denoiser
-Wave-Unet адаптированно со статьи https://arxiv.org/pdf/1806.03185.pdf
+Реализация моделей, цикла обучения представлена в директории wave_wizard.
+Было реализованно 3 варианта архитектуры: Wave-Unet и [Demucs](https://github.com/facebookresearch/denoiser) взято практически без изменений, Wave-Unet адаптированно со [статьи](https://arxiv.org/pdf/1806.03185.pdf) и  GateWave - собственная разработка, вдохновленная [статьей](https://paperswithcode.com/method/gated-convolution-network). 
+```
+.
+├── blocks
+│   ├── basic.py
+│   └── gated.py
+├── callbacks.py
+├── dataset.py
+├── inference.py
+├── loss.py
+├── models
+│   ├── demucs.py
+│   ├── gatewave.py
+│   ├── resample.py
+│   └── waveunet.py
+├── noiser.py
+├── util.py
+└── wrap.py
+```
 
 ```
 git clone https://github.com/sir-timio/web-denoiser.git
