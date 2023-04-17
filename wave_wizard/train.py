@@ -83,7 +83,7 @@ if __name__ == "__main__":
     metric_callback = MetricCallback(test_loader, config["trainer"]["metric_interval"])
     model = get_model(config)
 
-    pl_model = LitModel(config, model, loss_fn, logger)
+    pl_model = LitModel(config, model, loss_fn)
     checkpoint_path = os.path.join(
         config["trainer"]["base_dir"], config["trainer"]["exp_name"], "checkpoints"
     )

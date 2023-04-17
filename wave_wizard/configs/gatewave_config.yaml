@@ -36,13 +36,14 @@ model:
   args:
     depth: 5
     scale: 2
-    init_hidden: 32
+    init_hidden: 48
     kernel_size: 8
     stride: 4
     padding: 0
     encoder_class: "GatedConv" # 'BasicConv' or 'GatedConv'
     decoder_class: "GatedDeConv" # 'BasicDeConv' or 'GatedDeConv'
     normalize: True
+    rescale: 0.1
 
 optim:
   lr: 0.00001

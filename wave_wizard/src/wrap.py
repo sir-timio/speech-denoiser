@@ -11,7 +11,7 @@ from torchmetrics.audio import (
 
 
 class LitModel(pl.LightningModule):
-    def __init__(self, config, model, loss_fn, writer):
+    def __init__(self, config, model, loss_fn):
         super().__init__()
         self.model = model
         self.loss_fn = loss_fn
@@ -24,7 +24,6 @@ class LitModel(pl.LightningModule):
             config["trainer"]["sample_rate"], mode="wb"
         )
         self.snr = SignalNoiseRatio()
-        self.writer = writer
 
     def configure_optimizers(self):
         return optim.Adam(

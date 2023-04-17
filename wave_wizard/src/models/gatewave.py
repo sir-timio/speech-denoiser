@@ -41,6 +41,7 @@ class GateWave(nn.Module):
         encoder_class="GatedConv",
         decoder_class="GatedDeConv",
         normalize=True,
+        rescale=None,
     ):
         """GateWave
 
@@ -88,6 +89,8 @@ class GateWave(nn.Module):
             hidden = int(hidden * scale)
 
         self.rnn = BGRU(in_channels, bi=True)
+        if rescale:
+            rescale_module(self, reference=rescale)
 
     def valid_length(self, length):
         """

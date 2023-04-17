@@ -65,6 +65,15 @@ class AudioSet(Dataset):
         mode="train",
         shift=0,
     ):
+        """Audio dataset
+
+        Args:
+            file_path (str): path to annotation files
+            sample_rate (int, optional): audio sample rate. Defaults to 1600.
+            sample_len (int, optional): lenght on train sample. Defaults to 16384.
+            mode (str, optional): loading data mode, if train samples fit to sample len. Defaults to "train".
+            shift (int, optional): _description_. Defaults to 0.
+        """
         super(Dataset, self).__init__()
         dataset_list = [
             line.rstrip("\n").rstrip()
