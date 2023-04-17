@@ -1,14 +1,22 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-# author: adefossez
-
 import math
 
 import torch as th
+from torch import nn
 from torch.nn import functional as F
+
+
+def rescale_conv(conv, reference):
+    std = conv.weight.std().detach()
+    scale = (std / reference) ** 0.5
+    conv.weight.data /= scale
+    if conv.bias is not None:
+        conv.bias.data /= scale
+
+
+def rescale_module(module, reference):
+    for sub in module.modules():
+        if isinstance(sub, (nn.Conv1d, nn.ConvTranspose1d)):
+            rescale_conv(sub, reference)
 
 
 def sinc(t):
@@ -41,9 +49,9 @@ def upsample2(x, zeros=56):
     """
     *other, time = x.shape
     kernel = kernel_upsample2(zeros).to(x)
-    out = F.conv1d(x.view(-1, 1, time), kernel, padding=zeros)[
-        ..., 1:
-    ].view(*other, time)
+    out = F.conv1d(x.view(-1, 1, time), kernel, padding=zeros)[..., 1:].view(
+        *other, time
+    )
     y = th.stack([x, out], dim=-1)
     return y.view(*other, -1)
 
@@ -71,7 +79,7 @@ def downsample2(x, zeros=56):
     xodd = x[..., 1::2]
     *other, time = xodd.shape
     kernel = kernel_downsample2(zeros).to(x)
-    out = xeven + F.conv1d(
-        xodd.view(-1, 1, time), kernel, padding=zeros
-    )[..., :-1].view(*other, time)
+    out = xeven + F.conv1d(xodd.view(-1, 1, time), kernel, padding=zeros)[
+        ..., :-1
+    ].view(*other, time)
     return out.view(*other, -1).mul(0.5)

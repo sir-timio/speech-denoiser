@@ -1,11 +1,10 @@
 import torch
 
+
 def enhance(model, noisy, sample_len=16384):
     if noisy.size(-1) % sample_len != 0:
         padded_length = sample_len - (noisy.size(-1) % sample_len)
-        noisy = torch.cat(
-            [noisy, torch.zeros(size=(1, 1, padded_length))], dim=-1
-        )
+        noisy = torch.cat([noisy, torch.zeros(size=(1, 1, padded_length))], dim=-1)
 
     assert noisy.size(-1) % sample_len == 0 and noisy.dim() == 3
 

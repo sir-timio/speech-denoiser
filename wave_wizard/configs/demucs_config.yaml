@@ -1,0 +1,70 @@
+seed: 42
+dataset:
+  shift: 4000
+  sample_len: 16384
+  sample_rate: 16000
+  train:
+    ann_path: 'dataset/train.txt'
+    dataloader:
+      batch_size: 32
+      num_workers: 10
+  val:
+    ann_path: 'dataset/val.txt'
+    dataloader:
+      batch_size: 32
+      num_workers: 10
+  test:
+    ann_path: 'dataset/test.txt'
+    dataloader:
+      batch_size: 1
+      num_workers: 10
+
+# model:
+#   type: gatewave
+#   args:
+#     depth: 5
+#     scale: 2
+#     init_hidden: 16
+#     kernel_size: 7
+#     stride: 1
+#     padding: 3
+#     encoder_class: 'BasicConv' # 'BasicConv' or 'GatedConv'
+#     decoder_class: 'BasicDeConv' # 'BasicDeConv' or 'GatedDeConv'
+
+model:
+  type: demucs
+  args:
+    chin: 1
+    chout: 1
+    hidden: 48
+    max_hidden: 10000
+    causal: true
+    glu: true
+    depth: 5
+    kernel_size: 8
+    stride: 4
+    normalize: true
+    resample: 4
+    growth: 2
+    rescale: 0.1
+
+optim:
+  lr: 0.00001
+
+loss:
+  stft_sc_factor: 0.5
+  stft_mag_factor: 0.5
+
+trainer:
+  sample_rate: 16000  #16000
+  resume:
+  debug_interval: 25
+  metric_interval: 10
+  val_interval: 5
+  log_steps: 50
+  epochs: -1
+  sample_length: 16384
+  base_dir: 'output'
+  exp_name: 'demucs'
+  log_dir: 'tb_logs'
+  cudnn_deterministic: True

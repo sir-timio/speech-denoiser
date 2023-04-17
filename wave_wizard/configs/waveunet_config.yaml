@@ -1,0 +1,50 @@
+seed: 42
+dataset:
+  shift: 4000
+  sample_len: 16384
+  sample_rate: 16000
+  train:
+    ann_path: 'dataset/train.txt'
+    dataloader:
+      batch_size: 32
+      num_workers: 10
+  val:
+    ann_path: 'dataset/val.txt'
+    dataloader:
+      batch_size: 32
+      num_workers: 10
+  test:
+    ann_path: 'dataset/test.txt'
+    dataloader:
+      batch_size: 1
+      num_workers: 10
+
+model:
+  type: waveunet
+  args:
+    chin: 1
+    chout: 1
+    hidden: 24
+    depth: 5
+    normalize: True
+
+optim:
+  lr: 0.00001
+
+loss:
+  stft_sc_factor: 0.5
+  stft_mag_factor: 0.5
+
+trainer:
+  sample_rate: 16000  #16000
+  resume:
+  debug_interval: 25
+  metric_interval: 10
+  val_interval: 5
+  log_steps: 50
+  epochs: -1
+  sample_length: 16384
+  base_dir: 'output'
+  exp_name: 'waveunet'
+  log_dir: 'tb_logs'
+  cudnn_deterministic: True

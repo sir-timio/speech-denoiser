@@ -14,7 +14,7 @@ def load_denoiser():
         model: denoiser
     """
     version = os.getenv("DENOISER_V")
-    assert version in ['dns64', 'dns48']
+    assert version in ["dns64", "dns48"]
     return eval(f"pretrained.{version}().cpu()")
 
 

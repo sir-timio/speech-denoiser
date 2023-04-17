@@ -9,6 +9,7 @@ from audio_recorder_streamlit import audio_recorder
 import torchaudio
 import librosa
 from matplotlib import pyplot as plt
+
 plt.rcParams["figure.figsize"] = (10, 5)
 from dotenv import load_dotenv
 
@@ -26,9 +27,9 @@ def process_audio(audio_bytes, denoiser, transcriber):
         st.audio(audio_bytes, format="audio/wav")
 
     uid = str(uuid.uuid4())
-    file_name = uid + '.wav'
+    file_name = uid + ".wav"
     file_path = join_path(STORAGE_FOLDER, file_name)
-    with open(file_path, 'wb') as f:
+    with open(file_path, "wb") as f:
         f.write(audio_bytes)
 
     wav, sr = librosa.load(file_path)
@@ -36,16 +37,16 @@ def process_audio(audio_bytes, denoiser, transcriber):
     with col1:
         st.pyplot(plot_wave(wav, sr))
 
-    denoised_file_path = join_path(STORAGE_FOLDER,
-                                   file_name.replace(uid, f"denoised_{uid}"))
+    denoised_file_path = join_path(
+        STORAGE_FOLDER, file_name.replace(uid, f"denoised_{uid}")
+    )
     denoised_audio_tensor = denoise(denoiser, file_path)
 
-    torchaudio.save(denoised_file_path, denoised_audio_tensor,
-                    denoiser.sample_rate)
+    torchaudio.save(denoised_file_path, denoised_audio_tensor, denoiser.sample_rate)
 
     with col2:
         st.header("Очищенная аудиозапись")
-        st.audio(open(denoised_file_path, 'rb').read(), format="audio/wav")
+        st.audio(open(denoised_file_path, "rb").read(), format="audio/wav")
         denoised_wav, sr = librosa.load(denoised_file_path)
         st.pyplot(plot_wave(denoised_wav, sr))
 
@@ -56,13 +57,15 @@ def process_audio(audio_bytes, denoiser, transcriber):
 
 def main(denoiser, transcriber):
     st.title("Audio denoiser and trascriber 🤫")
-    audio_recorder_input = audio_recorder(text="Запишите звук",
-                                          pause_threshold=5.0,
-                                          neutral_color="#1ceb6b",                                          
-                                          )
-    uploaded_file = st.file_uploader("или загрузите файл",
-                                     type=["wav", "mp3", "mp4", "ogg"])
-    
+    audio_recorder_input = audio_recorder(
+        text="Запишите звук",
+        pause_threshold=5.0,
+        neutral_color="#1ceb6b",
+    )
+    uploaded_file = st.file_uploader(
+        "или загрузите файл", type=["wav", "mp3", "mp4", "ogg"]
+    )
+
     # audio recorder handler
     if audio_recorder_input:
         process_audio(audio_recorder_input, denoiser, transcriber)
@@ -75,7 +78,7 @@ def main(denoiser, transcriber):
 if __name__ == "__main__":
     if not os.path.exists(STORAGE_FOLDER):
         os.makedirs(STORAGE_FOLDER)
-        
+
     denoiser = load_denoiser()
     transcriber = load_transcriber()
     # cold_run([denoiser, transcriber], [denoise, transcribe])
