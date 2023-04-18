@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/worker/anaconda3/envs/py/bin/python",
+    "python.pythonPath": "/Users/timur/opt/anaconda3/envs/dev/bin/python",
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": false
 }
