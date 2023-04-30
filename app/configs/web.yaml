@@ -1,0 +1,3 @@
+whisper_version: 'base' # tiny, base, small, medium, large from https://github.com/openai/whisper
+denoiser_ckpt_path: 'weights/demucs_64.ckpt'
+storage: 'storage' # for in/out audio files

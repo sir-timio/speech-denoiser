@@ -1,6 +1,7 @@
 import uuid
 import os
 from os.path import join as join_path
+from app.src.models import load_transcriber
 from src.models import load_denoiser
 from src.utils import plot_wave
 from src.engine import denoise, cold_run
@@ -8,13 +9,32 @@ import streamlit as st
 import torchaudio
 import librosa
 from matplotlib import pyplot as plt
-from audio_recorder_streamlit import audio_recorder
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
+import argparse
+import yaml
+import argparse
 
 
 plt.rcParams["figure.figsize"] = (10, 5)
 
+parser = argparse.ArgumentParser(description="Process some integers.")
 
-STORAGE_FOLDER = "storage"
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",
+        nargs="?",
+        default="configs/train_config.yaml",
+        help="YAML configuration file",
+    )
+    return parser.parse_args()
+
+
+def load_config(args):
+    with open(args.config) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    return config
 
 
 def process_audio(audio_bytes, denoiser):
@@ -49,28 +69,43 @@ def process_audio(audio_bytes, denoiser):
 
 
 def main(denoiser):
-    st.title("Audio denoiser")
+    st.title("Audio denoiser and trascriber 🤫")
 
-    audio_recorder_input = audio_recorder(
-        text="Запишите звук",
-        pause_threshold=5.0,
-        neutral_color="#1ceb6b",
+    webrtc_ctx = webrtc_streamer(
+        key="speech denoising",
+        mode=WebRtcMode.SENDONLY,
+        audio_receiver_size=1024,
+        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+        media_stream_constraints={"video": False, "audio": True},
     )
+    status_indicator = st.empty()
+
     uploaded_file = st.file_uploader(
         "или загрузите файл", type=["wav", "mp3", "mp4", "ogg"]
     )
+    # if not webrtc_ctx.state.playing:
+    #     return
 
-    # audio recorder handler
-    if audio_recorder_input:
-        process_audio(audio_recorder_input, denoiser)
+    status_indicator.write("Loading...")
+    text_output = st.empty()
+    stream = None
+    if webrtc_ctx.audio_receiver:
+        audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
+        st.audio(audio_frames.tobytes())
+        process_audio(audio_frames.tobytes(), denoiser)
 
+    print(audio_frames)
     # upload file handler
     if uploaded_file:
         process_audio(uploaded_file.read(), denoiser)
 
 
 if __name__ == "__main__":
-    if not os.path.exists(STORAGE_FOLDER):
-        os.makedirs(STORAGE_FOLDER)
+    config = load_config(parse_args())
 
+    if not os.path.exists(config["storage"]):
+        os.makedirs(config["storage"])
+
+    denoiser = load_denoiser(ckpt_path=config["denoiser_ckpt_path"])
+    transcriber = load_transcriber(version=config["whisper_version"])
     main(load_denoiser())
