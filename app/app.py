@@ -1,26 +1,23 @@
 import uuid
 import os
 from os.path import join as join_path
-from src.models import load_denoiser, load_transcriber
+from src.models import load_denoiser
 from src.utils import plot_wave
-from src.engine import denoise, transcribe, cold_run
+from src.engine import denoise, cold_run
 import streamlit as st
-from audio_recorder_streamlit import audio_recorder
 import torchaudio
 import librosa
 from matplotlib import pyplot as plt
+from audio_recorder_streamlit import audio_recorder
+
 
 plt.rcParams["figure.figsize"] = (10, 5)
-from dotenv import load_dotenv
 
 
-load_dotenv()
+STORAGE_FOLDER = "storage"
 
 
-STORAGE_FOLDER = os.getenv("STORAGE_FOLDER")
-
-
-def process_audio(audio_bytes, denoiser, transcriber):
+def process_audio(audio_bytes, denoiser):
     col1, col2 = st.columns(2, gap="large")
     with col1:
         st.header("Исходная аудиозапись")
@@ -50,13 +47,10 @@ def process_audio(audio_bytes, denoiser, transcriber):
         denoised_wav, sr = librosa.load(denoised_file_path)
         st.pyplot(plot_wave(denoised_wav, sr))
 
-    _, text = transcribe(transcriber, denoised_file_path)
-    text = text or "(пусто)"
-    st.header(f"Транскрипт:\n{text}")
 
+def main(denoiser):
+    st.title("Audio denoiser")
 
-def main(denoiser, transcriber):
-    st.title("Audio denoiser and trascriber 🤫")
     audio_recorder_input = audio_recorder(
         text="Запишите звук",
         pause_threshold=5.0,
@@ -68,18 +62,15 @@ def main(denoiser, transcriber):
 
     # audio recorder handler
     if audio_recorder_input:
-        process_audio(audio_recorder_input, denoiser, transcriber)
+        process_audio(audio_recorder_input, denoiser)
 
     # upload file handler
     if uploaded_file:
-        process_audio(uploaded_file.read(), denoiser, transcriber)
+        process_audio(uploaded_file.read(), denoiser)
 
 
 if __name__ == "__main__":
     if not os.path.exists(STORAGE_FOLDER):
         os.makedirs(STORAGE_FOLDER)
 
-    denoiser = load_denoiser()
-    transcriber = load_transcriber()
-    # cold_run([denoiser, transcriber], [denoise, transcribe])
-    main(denoiser, transcriber)
+    main(load_denoiser())

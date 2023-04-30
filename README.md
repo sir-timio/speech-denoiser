@@ -128,4 +128,4 @@ maybe usefull https://github.com/snakers4/open_stt/#links
     streamlit run app/app.py
     ```
 
-![image](front.jpg)
+![image](doc/img/front.jpg)

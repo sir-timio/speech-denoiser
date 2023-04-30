@@ -140,3 +140,4 @@ lightning_logs
 output_
 output
 tb_logs
+app/weights

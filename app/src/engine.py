@@ -1,7 +1,7 @@
 import torch
 from typing import Tuple
 import librosa
-from denoiser.dsp import convert_audio
+from .demucs import convert_audio
 
 
 def denoise(model, file_path: str) -> torch.Tensor:
@@ -19,20 +19,6 @@ def denoise(model, file_path: str) -> torch.Tensor:
     with torch.no_grad():
         denoised = model(wav[None])[0]
     return denoised
-
-
-def transcribe(model, file_path: str) -> Tuple:
-    """transcribe audiofile with openai whisper
-
-    Args:
-        model: model from  https://github.com/openai/whisper
-        file_path (str): _description_
-
-    Returns:
-        Tuple: _description_
-    """
-    result = model.transcribe(file_path)
-    return result["language"], result["text"]
 
 
 def cold_run(models, funcs: callable, file_path: str = "cold_run.wav"):
