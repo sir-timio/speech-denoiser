@@ -13,4 +13,6 @@ librosa==0.10.0
 julius==0.2.7
 streamlit==1.19.0
 torch==2.0.0
-torchaudio==2.0.1
+torchaudio==2.0.1\
+addict
+sounddevice

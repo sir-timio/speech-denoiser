@@ -8,35 +8,14 @@ from os.path import join as join_path
 from src.models import load_denoiser, load_transcriber
 from src.utils import plot_wave
 from src.engine import denoise, transcribe, cold_run
+from src.utils import load_config, parse_args
 import streamlit as st
 import torchaudio
 import librosa
 from matplotlib import pyplot as plt
 from audio_recorder_streamlit import audio_recorder
 
-import argparse
-import yaml
-import argparse
-
-
 plt.rcParams["figure.figsize"] = (10, 5)
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        nargs="?",
-        default="configs/wevb.yaml",
-        help="YAML configuration file",
-    )
-    return parser.parse_args()
-
-
-def load_config(args):
-    with open(args.config) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-    return config
 
 
 def process_audio(storage, audio_bytes, denoiser, transcriber):

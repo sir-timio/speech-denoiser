@@ -1,10 +1,13 @@
+import sys
+
+sys.path.append("../app")
 import math
 import time
 
 import torch as th
 from torch import nn
 from torch.nn import functional as F
-from wave_wizard.src.models.util import downsample2, upsample2
+from src.demucs import downsample2, upsample2
 
 
 def fast_conv(conv, x):
@@ -47,6 +50,8 @@ class DemucsStreamer:
     def __init__(
         self, demucs, dry=0, num_frames=1, resample_lookahead=64, resample_buffer=256
     ):
+        if hasattr(demucs, "rnn"):
+            demucs.lstm = demucs.rnn
         device = next(iter(demucs.parameters())).device
         self.demucs = demucs
         self.lstm_state = None

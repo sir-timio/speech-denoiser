@@ -1,68 +1,11 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-# author: adefossez
-
-import argparse
 import sys
 
+sys.path.append("../app")
 import sounddevice as sd
 import torch
-
-from .streamer import DemucsStreamer
+from src.utils import load_config, parse_args
+from live.streamer import DemucsStreamer
 from src.models import load_denoiser
-
-
-def get_parser():
-    parser = argparse.ArgumentParser(
-        "denoiser.live",
-        description="Performs live speech enhancement, reading audio from "
-        "the default mic (or interface specified by --in) and "
-        "writing the enhanced version to 'Soundflower (2ch)' "
-        "(or the interface specified by --out).",
-    )
-    parser.add_argument(
-        "-c",
-        "--ckpt",
-        dest="ckpt_path",
-        help="path to model checkpoint",
-        default="app/weights/demucs_48.ckpt",
-    )
-    parser.add_argument(
-        "-i", "--in", dest="in_", help="name or index of input interface."
-    )
-    parser.add_argument(
-        "-o",
-        "--out",
-        default="Soundflower (2ch)",
-        help="name or index of output interface.",
-    )
-    parser.add_argument("--device", default="cpu")
-    parser.add_argument(
-        "--dry",
-        type=float,
-        default=0.04,
-        help="Dry/wet knob, between 0 and 1. 0=maximum noise removal "
-        "but it might cause distortions. Default is 0.04",
-    )
-    parser.add_argument(
-        "-t",
-        "--num_threads",
-        type=int,
-        help="Number of threads. If you have DDR3 RAM, setting -t 1 can "
-        "improve performance.",
-    )
-    parser.add_argument(
-        "-f",
-        "--num_frames",
-        type=int,
-        default=1,
-        help="Number of frames to process at once. Larger values increase "
-        "the overall lag, but will improve speed.",
-    )
-    return parser
 
 
 def parse_audio_device(device):
@@ -92,11 +35,11 @@ def query_devices(device, kind):
 
 
 def main():
-    args = get_parser().parse_args()
+    args = load_config(parse_args())
     if args.num_threads:
         torch.set_num_threads(args.num_threads)
 
-    model = load_denoiser(ckpt_path=args.ckpt)
+    model = load_denoiser(ckpt_path=args.denoiser_ckpt_path)
     model.eval()
     print("Model loaded.")
     streamer = DemucsStreamer(model, dry=args.dry, num_frames=args.num_frames)
