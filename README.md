@@ -3,12 +3,12 @@
 ### Структура проекта:
 ```
 .
-├── app # веб и live приложения
-├── doc # оформление репозитория
-└── wave_wizard # модели, обучение, тестирование и т.д.
+├── app # web and live applications
+├── doc # some samples, license, presentation
+└── wave_wizard # modeling, fitting, test and so on.
 ```
 
-Подробности обучения: wave_wizard/README.md
+Результаты обучения: wave_wizard/README.md
 Подробности по запуску веб приложения и real-time плагина app/README.md
 
 Инструкция по запуску:
@@ -16,10 +16,8 @@
 git clone https://github.com/sir-timio/web-denoiser.git
 cd web-denoiser
 pip install -r full_requirements.txt 
+
 ```
-
-### generate train data
-
 - download/get clean and noise audio files. Used data: https://github.com/microsoft/MS-SNSD:
     ```
     git clone https://github.com/microsoft/MS-SNSD
@@ -35,16 +33,6 @@ pip install -r full_requirements.txt
 - run training, check metrics and debug samples
     ```
     python train.py --config configs/train_config.yaml
-    ```
-- create app/.env file with variables
-    ```
-    STORAGE_FOLDER=<YOUR STORAGE FOLDER>
-    DENOISER_V=dns64
-    WHISPER_V=base # from pip install git+https://github.com/openai/whisper.git 
-    ```
-- lauch app
-    ```
-    streamlit run app/app.py
     ```
 
 ![image](doc/img/front.jpg)
