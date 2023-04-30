@@ -11,42 +11,57 @@ import sys
 import sounddevice as sd
 import torch
 
-from .demucs import DemucsStreamer
-from .pretrained import add_model_flags, get_model
+from .streamer import DemucsStreamer
+from src.models import load_denoiser
 
 
 def get_parser():
     parser = argparse.ArgumentParser(
         "denoiser.live",
         description="Performs live speech enhancement, reading audio from "
-                    "the default mic (or interface specified by --in) and "
-                    "writing the enhanced version to 'Soundflower (2ch)' "
-                    "(or the interface specified by --out)."
-        )
+        "the default mic (or interface specified by --in) and "
+        "writing the enhanced version to 'Soundflower (2ch)' "
+        "(or the interface specified by --out).",
+    )
     parser.add_argument(
-        "-i", "--in", dest="in_",
-        help="name or index of input interface.")
+        "-c",
+        "--ckpt",
+        dest="ckpt_path",
+        help="path to model checkpoint",
+        default="app/weights/demucs_48.ckpt",
+    )
     parser.add_argument(
-        "-o", "--out", default="Soundflower (2ch)",
-        help="name or index of output interface.")
-    add_model_flags(parser)
+        "-i", "--in", dest="in_", help="name or index of input interface."
+    )
     parser.add_argument(
-        "--no_compressor", action="store_false", dest="compressor",
-        help="Deactivate compressor on output, might lead to clipping.")
+        "-o",
+        "--out",
+        default="Soundflower (2ch)",
+        help="name or index of output interface.",
+    )
+    parser.add_argument("--device", default="cpu")
     parser.add_argument(
-        "--device", default="cpu")
-    parser.add_argument(
-        "--dry", type=float, default=0.04,
+        "--dry",
+        type=float,
+        default=0.04,
         help="Dry/wet knob, between 0 and 1. 0=maximum noise removal "
-             "but it might cause distortions. Default is 0.04")
+        "but it might cause distortions. Default is 0.04",
+    )
     parser.add_argument(
-        "-t", "--num_threads", type=int,
+        "-t",
+        "--num_threads",
+        type=int,
         help="Number of threads. If you have DDR3 RAM, setting -t 1 can "
-             "improve performance.")
+        "improve performance.",
+    )
     parser.add_argument(
-        "-f", "--num_frames", type=int, default=1,
+        "-f",
+        "--num_frames",
+        type=int,
+        default=1,
         help="Number of frames to process at once. Larger values increase "
-             "the overall lag, but will improve speed.")
+        "the overall lag, but will improve speed.",
+    )
     return parser
 
 
@@ -69,7 +84,8 @@ def query_devices(device, kind):
             "(https://github.com/mattingalls/Soundflower).\n"
             "You can list available interfaces with `python3 -m sounddevice` on Linux and OS X, "
             "and `python.exe -m sounddevice` on Windows. You must have at least one loopback "
-            "audio interface to use this.")
+            "audio interface to use this."
+        )
         print(message, file=sys.stderr)
         sys.exit(1)
     return caps
@@ -80,26 +96,24 @@ def main():
     if args.num_threads:
         torch.set_num_threads(args.num_threads)
 
-    model = get_model(args).to(args.device)
+    model = load_denoiser(ckpt_path=args.ckpt)
     model.eval()
     print("Model loaded.")
     streamer = DemucsStreamer(model, dry=args.dry, num_frames=args.num_frames)
 
     device_in = parse_audio_device(args.in_)
     caps = query_devices(device_in, "input")
-    channels_in = min(caps['max_input_channels'], 2)
+    channels_in = min(caps["max_input_channels"], 2)
     stream_in = sd.InputStream(
-        device=device_in,
-        samplerate=model.sample_rate,
-        channels=channels_in)
+        device=device_in, samplerate=model.sample_rate, channels=channels_in
+    )
 
     device_out = parse_audio_device(args.out)
     caps = query_devices(device_out, "output")
-    channels_out = min(caps['max_output_channels'], 2)
+    channels_out = min(caps["max_output_channels"], 2)
     stream_out = sd.OutputStream(
-        device=device_out,
-        samplerate=model.sample_rate,
-        channels=channels_out)
+        device=device_out, samplerate=model.sample_rate, channels=channels_out
+    )
 
     stream_in.start()
     stream_out.start()
@@ -118,7 +132,7 @@ def main():
                 last_log_time = current_time
                 tpf = streamer.time_per_frame * 1000
                 rtf = tpf / stride_ms
-                print(f"time per frame: {tpf:.1f}ms, ", end='')
+                print(f"time per frame: {tpf:.1f}ms, ", end="")
                 print(f"RTF: {rtf:.1f}")
                 streamer.reset_time_per_frame()
 
@@ -144,8 +158,10 @@ def main():
                 if current_time >= last_error_time + cooldown_time:
                     last_error_time = current_time
                     tpf = 1000 * streamer.time_per_frame
-                    print(f"Not processing audio fast enough, time per frame is {tpf:.1f}ms "
-                          f"(should be less than {stride_ms:.1f}ms).")
+                    print(
+                        f"Not processing audio fast enough, time per frame is {tpf:.1f}ms "
+                        f"(should be less than {stride_ms:.1f}ms)."
+                    )
         except KeyboardInterrupt:
             print("Stopping")
             break

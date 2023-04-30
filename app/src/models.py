@@ -18,4 +18,5 @@ def load_transcriber(version="base"):
         model: transcriber
     """
     assert version in whisper.available_models()
+
     return whisper.load_model(version)
