@@ -56,7 +56,7 @@ class DemucsStreamer:
         self.demucs = demucs
         self.lstm_state = None
         self.conv_state = None
-        self.dry = dry
+        self.dry = 1 - dry  # fixed for users
         self.resample_lookahead = resample_lookahead
         resample_buffer = min(demucs.total_stride, resample_buffer)
         self.resample_buffer = resample_buffer

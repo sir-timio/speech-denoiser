@@ -8,12 +8,25 @@ for both web and live, specify yaml config in configs/
 
 On mac os, install [BlackHole](https://github.com/ExistentialAudio/BlackHole) first.
 
-# live
+# live cli
 ```
-    python live/run.py --config configs/live.yaml
+    python live/cli.py --config configs/live.yaml
 ```
 
-Then select chosen channel as mic.
+![image](../doc/img/cli.jpg)
+
+
+# live gui
+```
+    python live/gui.py
+```
+
+![image](../doc/img/gui.jpg)
+
+
+Нажми кнопку сохранить для обновления параметров запуска.
+
+Выберите в качестве микрофона нужное устройство.
 
 ![image](../doc/img/mic_choice.jpg)
 
