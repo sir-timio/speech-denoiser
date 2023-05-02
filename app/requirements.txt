@@ -16,3 +16,4 @@ torch==2.0.0
 torchaudio==2.0.1\
 addict
 sounddevice
+tk

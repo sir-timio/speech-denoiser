@@ -1,5 +1,7 @@
 # Web speech denoiser and transcriber
 
+python 3.9
+
 # Структура проекта:
 ```
 .

@@ -1,7 +1,5 @@
 import os
 import sys
-import threading
-from turtle import width
 
 sys.path.append("../app")
 
