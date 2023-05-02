@@ -1,6 +1,7 @@
 import sys
 
 sys.path.append("../app")
+sys.path.append("..")  # for docker
 import uuid
 import os
 from src.demucs import Demucs

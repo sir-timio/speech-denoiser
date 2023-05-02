@@ -17,13 +17,13 @@ RUN apt-get install -y pulseaudio
 ENV PULSE_SERVER=docker.for.mac.localhost
 
 
-COPY app/requirements.txt requirements.txt
-COPY app /app
+COPY requirements.txt requirements.txt
+COPY . .
 
-WORKDIR /app
+WORKDIR /
 
-# RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip3 install -r requirements.txt
-RUN pip3 install -r requirements.txt
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip3 install -r requirements.txt
+# RUN pip3 install -r requirements.txt
 
 RUN pip install --upgrade pip wheel
 
@@ -31,4 +31,4 @@ EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "web/app.py", "--server.port=8501", "--server.address=0.0.0.0", "--", "--config", "configs/web.yaml"]

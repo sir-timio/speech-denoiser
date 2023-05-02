@@ -13,7 +13,9 @@ librosa==0.10.0
 julius==0.2.7
 streamlit==1.19.0
 torch==2.0.0
-torchaudio==2.0.1\
+torchaudio==2.0.1
 addict
 sounddevice
 tk
+openai-whisper @ git+https://github.com/openai/whisper.git@c09a7ae299c4c34c5839a76380ae407e7d785914
+

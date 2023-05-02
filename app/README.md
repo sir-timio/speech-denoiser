@@ -29,9 +29,22 @@ On mac os, install [BlackHole](https://github.com/ExistentialAudio/BlackHole) fi
 Выберите в качестве микрофона нужное устройство.
 
 ![image](../doc/img/mic_choice.jpg)
-
 # web
+
+Можно запустить как с исходников:
 ```
     streamlit run web/app.py -- --config configs/web.yaml
 ```
+
+так и через docker:
+```
+    sh build.sh
+    sh up.sh
+```
+
+Для линукса необходимо в web/up.sh добавить передачу [устройства](https://stackoverflow.com/questions/45700653/can-my-docker-container-app-access-the-hosts-microphone-and-speaker-mac-wind). 
+Для macos я воспользовался [pulseaudio](https://stackoverflow.com/questions/40136606/how-to-expose-audio-from-docker-container-to-a-mac)
+
+Свободно меняйте entrypoint в Dockerfile, чтобы докеризовать другой сервис!
+
 ![image](../doc/img/front.jpg)
