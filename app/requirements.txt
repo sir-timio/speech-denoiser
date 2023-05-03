@@ -1,0 +1,19 @@
+addict==2.4.0
+altair==4.2.2
+audio-recorder-streamlit==0.0.8
+audioread==3.0.0
+audiosegment==0.23.0
+julius==0.2.7
+librosa==0.10.0
+matplotlib==3.7.0
+numpy==1.23.5
+openai-whisper @ git+https://github.com/openai/whisper.git@c09a7ae299c4c34c5839a76380ae407e7d785914
+omegaconf==2.3.0
+PyYAML==6.0
+resampy==0.4.2
+sounddevice==0.4.0
+soundfile==0.12.1
+streamlit==1.19.0
+torch==2.0.0
+torchaudio==2.0.1
+

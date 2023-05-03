@@ -1,0 +1,24 @@
+
+denoiser_ckpt_path: 'weights/demucs_48.ckpt' # path to ckpt
+
+#name or index of input interface
+in_: null
+
+# You can list available interfaces with `python3 -m sounddevice` on Linux and OS X, " 
+# "and `python.exe -m sounddevice` on Windows.
+out: "BlackHole 2ch"
+
+# Number of threads. If you have DDR3 RAM, setting -t 1 can improve performance.
+num_threads: 1
+
+# Dry/wet knob, between 0 and 1. 1 is maximum noise removal but it might cause distortions. Default is 0.96
+dry: 0.96
+
+device: 'cpu'
+
+# Deactivate compressor on output, might lead to clipping
+compressor: False
+
+# Number of frames to process at once. Larger values increase "
+# "the overall lag, but will improve speed.
+num_frames: 1
