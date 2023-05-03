@@ -141,3 +141,7 @@ output_
 output
 tb_logs
 app/weights
+MS-SNSD
+clean_train
+noise_train
+ann.txt
