@@ -14,15 +14,15 @@
 #                         Specify 'None' if no noise files to be excluded.
 
 sampling_rate: 16000
-audioformat: *.wav
-audio_length: 10 
+audioformat: '*.wav'
+audio_length: 10
 silence_length: 0.2
 total_hours: 10
 snr_lower: 0
 snr_upper: 40
 total_snrlevels: 5  
 
-noise_dir: null
-speech_dir: null
+noise_dir: noise_train
+speech_dir: clean_train
 noise_types_excluded: null
-out_file: null
+out_file: ann.txt

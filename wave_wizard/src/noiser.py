@@ -122,6 +122,7 @@ def main(config):
 
     filecounter = 0
     num_samples = 0
+    annotation = ""
 
     while num_samples < total_samples:
         idx_s = np.random.randint(0, np.size(cleanfilenames))
@@ -156,7 +157,6 @@ def main(config):
         noise = noise[0 : len(clean)]
         filecounter = filecounter + 1
 
-        annotation = ""
         for i in range(np.size(SNR)):
             clean_snr, noise_snr, noisy_snr = snr_mixer(
                 clean=clean, noise=noise, snr=SNR[i]
@@ -185,18 +185,18 @@ def main(config):
             audiowrite(noise_snr, fs, noisepath, norm=False)
             num_samples = num_samples + len(noisy_snr)
 
-        out_file = os.path.join(os.path.dirname(__file__), "out.txt")
-        if config["out_file"]:
-            out_file = config["out_file"]
-        with open(out_file, "w") as f:
-            f.write(annotation)
-        print(f"DONE")
+    out_file = os.path.join(os.path.dirname(__file__), "out.txt")
+    if config["out_file"]:
+        out_file = config["out_file"]
+    with open(out_file, "w") as f:
+        f.write(annotation)
+    print(f"DONE")
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "config",
+        "--config",
         nargs="?",
         default="configs/noiser_config.yaml",
         help="YAML configuration file",
@@ -212,5 +212,4 @@ def load_config(args):
 
 if __name__ == "__main__":
     config = load_config(parse_args())
-
     main(config)
