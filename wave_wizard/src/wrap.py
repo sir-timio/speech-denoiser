@@ -37,7 +37,7 @@ class LitModel(pl.LightningModule):
         return out
 
     def adaptive_forward(self, x):
-        """only for one batched test data, specially for waveunet implementation"""
+        """only for one batched test data"""
         if x.size(-1) % self.sample_len != 0:
             padded_length = self.sample_len - (x.size(-1) % self.sample_len)
             x = torch.cat(
@@ -59,18 +59,23 @@ class LitModel(pl.LightningModule):
         enhanced = torch.reshape(enhanced, shape=(1, 1, -1))
         return enhanced
 
-    def training_step(self, batch, batch_ind):
+    def shared_step(self, batch, batch_ind, phase='train'):
         noisy, clean, _ = batch
         enhanced = self.forward(noisy)
-        loss = self.loss_fn(clean, enhanced)
-        self.log("train_loss", loss)
+        loss_dict = self.loss_fn(clean, enhanced)
+        loss = 0
+        for name, val in loss_dict.items():
+            loss += val
+            self.log(f"{phase}/{name}", val)
+        self.log(f"{phase}_loss", loss)
+        return loss
+
+    def training_step(self, batch, batch_ind):
+        loss = self.shared_step(batch, batch_ind, phase='train')
         return loss
 
     def validation_step(self, batch, batch_ind):
-        noisy, clean, _ = batch
-        enhanced = self.forward(noisy)
-        loss = self.loss_fn(clean, enhanced)
-        self.log("val_loss", loss)
+        loss = self.shared_step(batch, batch_ind, phase='val')
         return loss
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):

@@ -52,6 +52,8 @@ optim:
   lr: 0.00001
 
 loss:
+  l1_weight: 5
+  stft_weight: 1
   stft_sc_factor: 0.5
   stft_mag_factor: 0.5
 
@@ -62,7 +64,7 @@ trainer:
   metric_interval: 10
   val_interval: 5
   log_steps: 50
-  epochs: -1
+  epochs: 600
   sample_length: 16384
   base_dir: 'output'
   exp_name: 'demucs'

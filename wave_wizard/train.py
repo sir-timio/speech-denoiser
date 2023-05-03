@@ -1,4 +1,5 @@
 import os
+from typing import Callable
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
@@ -21,7 +22,9 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from src.callbacks import AudioVisualizationCallback, MetricCallback
 from torch.utils.tensorboard import SummaryWriter
 from src.wrap import LitModel
-
+from addict import Dict
+import optuna
+import functools
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -34,13 +37,60 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_config(args):
+def load_config(args) -> dict:
     with open(args.config) as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-    return config
+    return Dict(config)
 
 
-def get_model(config):
+def get_loss_fn(config) -> Callable:
+    """
+    build loss fn based on config.
+    
+    Args:
+        config (dict): exp config
+
+    Raises:
+        Exception: One of losses should have non zero weight
+
+    Returns:
+        Callable: loss
+    """
+    if config.loss.stft_weight != 0:
+        mrstftloss = MultiResolutionSTFTLoss(
+            factor_sc=config.loss.stft_sc_factor,
+            factor_mag=config.loss.stft_mag_factor,
+        )
+    if config.loss.l1_weight != 0 and config.loss.stft_weight != 0:
+        alpha = config.loss.l1_weight
+        beta = config.loss.stft_weight
+        return lambda x, y: dict(
+            l1=F.l1_loss(x, y) * alpha,
+            mstft=sum(mrstftloss(x.squeeze(1), y.squeeze(1))) * beta
+        )
+    elif config.loss.l1_weight != 0 and config.loss.stft_weight == 0:
+        return lambda x, y: dict(l1=F.l1_loss(x, y) * config.loss.l1_weight)
+    elif config.loss.l1_weight == 0 and config.loss.stft_weight != 0:
+        return lambda x, y: dict(mstft=sum(mrstftloss(x.squeeze(1), y.squeeze(1))) * config.loss.stft_weight)
+    else:
+        raise Exception("One of losses should have non zero weight")
+
+    
+
+
+def get_model(config) -> torch.nn.Module:
+    """
+    build model based on config
+    
+    Args:
+        config (dict): exp config
+
+    Raises:
+        Exception: Passed unknown arch
+
+    Returns:
+        torch.nn.Module: model instance
+    """
     name = config["model"]["type"]
     if name == "gatewave":
         cls = GateWave
@@ -54,23 +104,17 @@ def get_model(config):
     return cls(**config["model"]["args"])
 
 
-if __name__ == "__main__":
-    config = load_config(parse_args())
+def train_model(trial, config):
+    config.loss.l1_weight = trial.suggest_int("l1_weight", 1, 10)
+    config.loss.stft_weight = trial.suggest_int("stft_weight", 1, 10)
+
+    task_name = f'{config.model.type}_l1:{config.loss.l1_weight}_stft:{config.loss.stft_weight}'
     task = Task.init(project_name="GateWave", task_name=config["model"]["type"])
-    logger = task.get_logger()
     writer = SummaryWriter(config["trainer"]["log_dir"])
     pl.seed_everything(config["seed"])
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    mrstftloss = MultiResolutionSTFTLoss(
-        factor_sc=config["loss"]["stft_sc_factor"],
-        factor_mag=config["loss"]["stft_mag_factor"],
-    )
-
-    def loss_fn(x, y):
-        sc_loss, mag_loss = mrstftloss(x.squeeze(1), y.squeeze(1))
-        return F.l1_loss(x, y) + sc_loss + mag_loss
-
+    
     train_loader, val_loader, test_loader = get_train_val_test_loaders(
         config["dataset"]
     )
@@ -82,6 +126,7 @@ if __name__ == "__main__":
     )
     metric_callback = MetricCallback(test_loader, config["trainer"]["metric_interval"])
     model = get_model(config)
+    loss_fn = get_loss_fn(config)
 
     pl_model = LitModel(config, model, loss_fn)
     checkpoint_path = os.path.join(
@@ -89,6 +134,7 @@ if __name__ == "__main__":
     )
     os.makedirs(checkpoint_path, exist_ok=True)
     checkpoint_callback = ModelCheckpoint(
+        every_n_epochs=30,
         dirpath=checkpoint_path,
         filename="best-checkpoint",
         verbose=True,
@@ -107,3 +153,25 @@ if __name__ == "__main__":
     )
     task.connect(config)
     trainer.fit(pl_model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    metrics = trainer.test(pl_model, test_loader)[0]
+    return metrics['pesq']
+    
+
+if __name__ == "__main__":
+    config = load_config(parse_args())
+    objective = functools.partial(train_model, config=config)
+    pruner = optuna.pruners.MedianPruner()
+    study = optuna.create_study(direction='maximize', pruner=pruner)
+    study.optimize(objective, n_trials=10, timeout=600)
+
+    print("Number of finished trials: {}".format(len(study.trials)))
+
+    print("Best trial:")
+    trial = study.best_trial
+
+    print("  Value: {}".format(trial.value))
+
+    print("  Params: ")
+    for key, value in trial.params.items():
+        print("    {}: {}".format(key, value))
+    

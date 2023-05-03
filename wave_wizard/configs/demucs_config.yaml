@@ -19,17 +19,6 @@ dataset:
       batch_size: 1
       num_workers: 10
 
-# model:
-#   type: gatewave
-#   args:
-#     depth: 5
-#     scale: 2
-#     init_hidden: 16
-#     kernel_size: 7
-#     stride: 1
-#     padding: 3
-#     encoder_class: 'BasicConv' # 'BasicConv' or 'GatedConv'
-#     decoder_class: 'BasicDeConv' # 'BasicDeConv' or 'GatedDeConv'
 
 model:
   type: demucs
@@ -49,9 +38,11 @@ model:
     rescale: 0.1
 
 optim:
-  lr: 0.00001
+  lr: 0.0001
 
 loss:
+  l1_weight: 2
+  stft_weight: 1
   stft_sc_factor: 0.5
   stft_mag_factor: 0.5
 
@@ -65,6 +56,6 @@ trainer:
   epochs: -1
   sample_length: 16384
   base_dir: 'output'
-  exp_name: 'demucs'
+  exp_name: 'demucs_2_1'
   log_dir: 'tb_logs'
   cudnn_deterministic: True

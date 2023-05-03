@@ -40,6 +40,8 @@ optim:
   lr: 0.00001
 
 loss:
+  l1_weight: 5
+  stft_weight: 1
   stft_sc_factor: 0.5
   stft_mag_factor: 0.5
 
