@@ -41,10 +41,6 @@ generate train data, split it into train, val and test as you wish, but test met
 ```
 run training, check metrics and debug samples
 
-<<<<<<< HEAD
-![image](doc/img/front.jpg)
-=======
 ```
     python train.py --config configs/train_config.yaml
 ```
->>>>>>> 9f63c0016b75ebe60d43501726df47a5c5f1a482

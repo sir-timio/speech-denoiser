@@ -19,6 +19,7 @@ nvidia-cuda-nvrtc-cu11==11.7.99
 nvidia-cuda-runtime-cu11==11.7.99
 nvidia-cudnn-cu11==8.5.0.96
 omegaconf==2.3.0
+optuna==3.1.1
 pandas==1.5.3
 pathlib2==2.3.7.post1
 PyYAML==6.0
