@@ -53,7 +53,7 @@ trainer:
   metric_interval: 10
   val_interval: 5
   log_steps: 50
-  epochs: 10
+  epochs: 100
   sample_length: 16384
   base_dir: 'output'
   exp_name: 'demucs'

@@ -106,8 +106,10 @@ def get_model(config) -> torch.nn.Module:
 
 
 def train_model(trial, config):
-    config.loss.l1_weight = trial.suggest_int("l1_weight", 0, 3)
-    config.loss.stft_weight = trial.suggest_int("stft_weight", 0, 3)
+    config.loss.l1_weight = trial.suggest_int("l1_weight", 0, 10)
+    config.loss.stft_weight = trial.suggest_int("stft_weight", 0, 10)
+    if config.loss.stft_weight == 0 and config.loss.l1_weight == 0:
+        config.loss.stft_weight = 1
     task_name = (
         f"{config.model.type}_l1:{config.loss.l1_weight}_stft:{config.loss.stft_weight}"
     )
@@ -163,7 +165,7 @@ if __name__ == "__main__":
     objective = functools.partial(train_model, config=config)
     pruner = optuna.pruners.MedianPruner()
     study = optuna.create_study(direction="maximize", pruner=pruner)
-    study.optimize(objective, n_trials=100, timeout=60 * 60 * 24)
+    study.optimize(objective, n_trials=1000, timeout=60 * 60 * 24)
 
     print("Number of finished trials: {}".format(len(study.trials)))
 
