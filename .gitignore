@@ -145,3 +145,4 @@ MS-SNSD
 clean_train
 noise_train
 ann.txt
+wave_wizard/pybooks/data
