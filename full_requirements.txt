@@ -27,13 +27,10 @@ resampy==0.4.2
 scikit-learn==1.2.1
 scipy==1.10.1
 sounddevice==0.4.0
-sounddevice==0.4.0
-soundfile==0.12.1
 soundfile==0.12.1
 streamlit==1.19.0
 tensorboard==2.12.2
 toml==0.10.2
-torch==2.0.0
 torch==2.0.0
 torchaudio==2.0.1
 torchaudio==0.13.1
