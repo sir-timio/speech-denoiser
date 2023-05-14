@@ -30,7 +30,7 @@ download/get clean and noise audio files. Used data: https://github.com/microsof
 ```
 
 
-optional: add to clean_data some subsets from https://github.com/snakers4/open_stt/#links with 99%+ quality
+optional: add to clean_data some subsets from https://github.com/snakers4/open_stt/#links with 99%+ quality and to noise_data files from https://www.kaggle.com/datasets/chrisfilo/urbansound8k
 
 
 generate train data, split it into train, val and test as you wish, but test metrics take a lot of time
