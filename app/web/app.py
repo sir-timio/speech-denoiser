@@ -2,19 +2,18 @@ import sys
 
 sys.path.append("../app")
 sys.path.append("..")  # for docker
-import uuid
 import os
-from src.demucs import Demucs
+import uuid
 from os.path import join as join_path
-from src.models import load_denoiser, load_transcriber
-from src.utils import plot_wave
-from src.engine import denoise, transcribe, cold_run
-from src.utils import load_config, parse_args
+
+import librosa
 import streamlit as st
 import torchaudio
-import librosa
-from matplotlib import pyplot as plt
 from audio_recorder_streamlit import audio_recorder
+from matplotlib import pyplot as plt
+from src.engine import cold_run, denoise, transcribe
+from src.models import load_denoiser, load_transcriber
+from src.utils import load_config, parse_args, plot_wave
 
 plt.rcParams["figure.figsize"] = (10, 5)
 
