@@ -147,3 +147,4 @@ noise_train
 ann.txt
 wave_wizard/pybooks/data
 app/configs/bot.yaml
+app/storage
