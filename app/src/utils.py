@@ -1,11 +1,10 @@
-import numpy as np
-import librosa
-from matplotlib import pyplot as plt
+import argparse
 
-import argparse
+import librosa
+import numpy as np
 import yaml
-import argparse
 from addict import Dict
+from matplotlib import pyplot as plt
 
 
 def parse_args():

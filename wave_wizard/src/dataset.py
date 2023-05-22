@@ -2,7 +2,7 @@ import os
 
 import librosa
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 
 def get_train_val_test_loaders(config):

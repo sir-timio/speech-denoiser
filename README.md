@@ -18,7 +18,7 @@ python 3.9
 ```
 git clone https://github.com/sir-timio/web-denoiser.git
 cd web-denoiser
-pip install -r full_requirements.txt 
+pip install -r requirements.txt 
 
 ```
 download/get clean and noise audio files. Used data: https://github.com/microsoft/MS-SNSD:

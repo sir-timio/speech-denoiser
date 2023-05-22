@@ -3,28 +3,28 @@ from typing import Callable
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
+import argparse
+import functools
+
+import optuna
+import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
-
-import pytorch_lightning as pl
-from src.dataset import get_train_val_test_loaders
-from clearml import Task
-import argparse
 import yaml
+from addict import Dict
+from clearml import Task
+from pytorch_lightning.callbacks import ModelCheckpoint
+from torch.utils.tensorboard import SummaryWriter
 
+from src.callbacks import AudioVisualizationCallback, MetricCallback
+from src.dataset import get_train_val_test_loaders
 from src.loss import MultiResolutionSTFTLoss
 
 # from src.models import Demucs, GateWave, WaveUnet
 from src.models.demucs import Demucs
 from src.models.gatewave import GateWave
 from src.models.waveunet import WaveUnet
-from pytorch_lightning.callbacks import ModelCheckpoint
-from src.callbacks import AudioVisualizationCallback, MetricCallback
-from torch.utils.tensorboard import SummaryWriter
 from src.wrap import LitModel
-from addict import Dict
-import optuna
-import functools
 
 
 def parse_args():

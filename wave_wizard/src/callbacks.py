@@ -1,8 +1,7 @@
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
 import librosa
 import librosa.display
+import matplotlib.pyplot as plt
+import numpy as np
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import Callback
 

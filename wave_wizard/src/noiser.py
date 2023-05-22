@@ -1,8 +1,9 @@
+import argparse
 import glob
+import os
+
 import numpy as np
 import soundfile as sf
-import os
-import argparse
 import yaml
 
 

@@ -1,9 +1,9 @@
 import math
 
+import julius
 import torch as th
 from torch import nn
 from torch.nn import functional as F
-import julius
 
 
 def convert_audio_channels(wav, channels=2):

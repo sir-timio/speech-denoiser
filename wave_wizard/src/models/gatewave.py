@@ -1,10 +1,12 @@
-from torch import nn
-from torch.nn import functional as F
 import math
 import sys
 
+from torch import nn
+from torch.nn import functional as F
+
 sys.path.append("../..")
 from src.blocks import *  # noqa
+
 from .util import rescale_conv, rescale_module
 
 

@@ -5,9 +5,9 @@ import math
 import time
 
 import torch as th
+from src.demucs import downsample2, upsample2
 from torch import nn
 from torch.nn import functional as F
-from src.demucs import downsample2, upsample2
 
 
 def fast_conv(conv, x):

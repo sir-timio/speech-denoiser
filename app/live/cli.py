@@ -3,10 +3,11 @@ import sys
 sys.path.append("../app")
 import sounddevice as sd
 import torch
-from live.utils import parse_audio_device, query_devices
-from src.utils import load_config, parse_args
-from live.streamer import DemucsStreamer
 from src.models import load_denoiser
+from src.utils import load_config, parse_args
+
+from live.streamer import DemucsStreamer
+from live.utils import parse_audio_device, query_devices
 
 
 def main():

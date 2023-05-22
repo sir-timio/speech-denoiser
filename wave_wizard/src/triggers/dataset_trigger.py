@@ -1,7 +1,6 @@
 from clearml import Task
 from clearml.automation import TriggerScheduler
 
-
 task = Task.init(
     project_name="DevOps",
     task_name="audio_dataset_update",

@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 # author: adefossez
 
+import functools
 import math
 import time
 
@@ -12,8 +13,7 @@ import torch as th
 from torch import nn
 from torch.nn import functional as F
 
-from .util import downsample2, upsample2, rescale_module
-import functools
+from .util import downsample2, rescale_module, upsample2
 
 
 class BLSTM(nn.Module):

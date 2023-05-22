@@ -1,8 +1,10 @@
-import torch
 from typing import Tuple
+
 import librosa
-from .demucs import convert_audio
+import torch
 import whisper
+
+from .demucs import convert_audio
 
 
 def denoise(model, file_path: str) -> torch.Tensor:

@@ -1,8 +1,6 @@
-import torch
-
 import pytorch_lightning as pl
+import torch
 import torch.optim as optim
-
 from torchmetrics.audio import (
     PerceptualEvaluationSpeechQuality,
     ShortTimeObjectiveIntelligibility,
@@ -59,7 +57,7 @@ class LitModel(pl.LightningModule):
         enhanced = torch.reshape(enhanced, shape=(1, 1, -1))
         return enhanced
 
-    def shared_step(self, batch, batch_ind, phase='train'):
+    def shared_step(self, batch, batch_ind, phase="train"):
         noisy, clean, _ = batch
         enhanced = self.forward(noisy)
         loss_dict = self.loss_fn(clean, enhanced)
@@ -71,11 +69,11 @@ class LitModel(pl.LightningModule):
         return loss
 
     def training_step(self, batch, batch_ind):
-        loss = self.shared_step(batch, batch_ind, phase='train')
+        loss = self.shared_step(batch, batch_ind, phase="train")
         return loss
 
     def validation_step(self, batch, batch_ind):
-        loss = self.shared_step(batch, batch_ind, phase='val')
+        loss = self.shared_step(batch, batch_ind, phase="val")
         return loss
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):

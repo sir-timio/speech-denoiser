@@ -1,7 +1,9 @@
 import os
+
 import torch
-from .demucs import Demucs
 import whisper
+
+from .demucs import Demucs
 
 
 def load_denoiser(ckpt_path="weights/demucs.ckpt"):

@@ -1,14 +1,14 @@
+import json
+import os
+import sys
+from collections import namedtuple
+from pathlib import Path
+
 import julius
 import numpy as np
 import torch
-from torch.nn import functional as F
 import torchaudio
-from collections import namedtuple
-
-import os
-import sys
-import json
-from pathlib import Path
+from torch.nn import functional as F
 
 Info = namedtuple("Info", ["length", "sample_rate", "channels"])
 

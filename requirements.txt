@@ -1,12 +1,18 @@
 addict==2.4.0
 audio_recorder_streamlit==0.0.8
+auto_mix_prep==0.2.0
+clearml==1.10.4
 julius==0.2.7
 librosa==0.10.0
 matplotlib==3.7.0
 numpy==1.23.5
-openai-whisper @ git+https://github.com/openai/whisper.git@c09a7ae299c4c34c5839a76380ae407e7d785914
+openai_whisper==20230124
+optuna==3.1.1
+pytorch_lightning==2.0.2
 PyYAML==6.0
 sounddevice==0.4.0
+soundfile==0.12.1
 streamlit==1.19.0
 torch==2.0.0
 torchaudio==2.0.1
+torchmetrics==0.11.4

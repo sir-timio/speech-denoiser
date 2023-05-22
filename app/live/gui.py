@@ -3,19 +3,18 @@ import sys
 
 sys.path.append("../app")
 
-import torch
-import sounddevice as sd
-from live.streamer import DemucsStreamer
-from src.models import load_denoiser
-from tkinter import IntVar
 import tkinter as tk
-from tkinter import OptionMenu, Label, StringVar, Entry, messagebox
+from tkinter import HORIZONTAL, Entry, IntVar, Label, OptionMenu, Scale, StringVar
 from tkinter import font as tkfont
+from tkinter import messagebox
 from tkinter.ttk import Label, Style
-from tkinter import Scale, HORIZONTAL
 
+import sounddevice as sd
+import torch
+from src.models import load_denoiser
+
+from live.streamer import DemucsStreamer
 from live.utils import parse_audio_device, query_devices
-
 
 W, H = 720, 480
 W_BIAS = 0
